@@ -88,3 +88,42 @@ li button {
   color: var(--muted);
   padding: 2px 8px;
 }
+
+input[type='color'] {
+  flex: 0 0 44px;
+  padding: 2px;
+  height: 36px;
+  cursor: pointer;
+}
+
+.statusbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 28px;
+  background: #101014;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* テーマはトークンの差し替えだけで切り替える（Oto棚の色辞書方式と同じ考え方）。
+   個々のスタイル側には手を入れない。 */
+.app[data-theme='light'] {
+  --bg: #f7f7f8;
+  --fg: #1a1a1e;
+  --muted: #6b6b73;
+  --line: #dcdce2;
+}
+
+.app[data-theme='light'] {
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+}
+
+.app[data-theme='light'] input {
+  background: #fff;
+  color: inherit;
+}

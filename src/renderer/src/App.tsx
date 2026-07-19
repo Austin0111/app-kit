@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Api } from '../../preload'
+import { useSettings } from './useSettings'
 
 declare global {
   interface Window {
@@ -7,21 +8,14 @@ declare global {
   }
 }
 
-// 設定の既定値はレンダラ側で1箇所に持ち、main から「既定値つきで一括返却」してもらう。
-const SETTING_DEFAULTS = {
-  theme: 'dark',
-  accentColor: '#7c3aed'
-}
-
-type Note = { id: number; body: string; createdAt: string }
+type Note = { id: number; body: string; createdAt: string; done: boolean }
 
 export default function App(): JSX.Element {
-  const [settings, setSettings] = useState<Record<string, string>>(SETTING_DEFAULTS)
+  const { settings, update, loaded } = useSettings()
   const [notes, setNotes] = useState<Note[]>([])
   const [draft, setDraft] = useState('')
 
   useEffect(() => {
-    window.api.settings.getAll(SETTING_DEFAULTS).then(setSettings)
     window.api.notes.list().then(setNotes)
   }, [])
 
@@ -38,24 +32,37 @@ export default function App(): JSX.Element {
     setNotes(await window.api.notes.list())
   }
 
-  async function toggleTheme(): Promise<void> {
-    const next = settings.theme === 'dark' ? 'light' : 'dark'
-    await window.api.settings.set('theme', next)
-    setSettings(await window.api.settings.getAll(SETTING_DEFAULTS))
-  }
-
   return (
-    <div className="app" data-theme={settings.theme}>
+    <div
+      className="app"
+      data-theme={settings.theme}
+      style={{ '--accent': settings.accentColor } as React.CSSProperties}
+    >
       <h1>app-kit</h1>
-      <p className="muted">雛形の動作確認。設定KV と Drizzle のマイグレーションを試すためのもの。</p>
+      <p className="muted">
+        雛形の動作確認。{loaded ? '設定を読み込み済み' : '設定を読み込み中…'}
+      </p>
 
       <section>
         <h2>設定KV</h2>
-        <p>
-          theme: <code>{settings.theme}</code> / accentColor: <code>{settings.accentColor}</code>
+        <div className="row">
+          <button onClick={() => update({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}>
+            テーマ: {settings.theme}
+          </button>
+          <input
+            type="color"
+            value={settings.accentColor}
+            onChange={(e) => update({ accentColor: e.target.value })}
+            title="アクセント色"
+          />
+          <button onClick={() => update({ showStatusBar: !settings.showStatusBar })}>
+            ステータスバー: {settings.showStatusBar ? 'ON' : 'OFF'}
+          </button>
+        </div>
+        <p className="muted">
+          いずれも即座に保存される。<strong>ウィンドウの位置・サイズも記憶する</strong>ので、
+          動かして閉じて開き直すと同じ場所に出る。
         </p>
-        <button onClick={toggleTheme}>テーマを切り替えて保存</button>
-        <p className="muted">再起動しても保持されていれば成功。</p>
       </section>
 
       <section>
@@ -78,6 +85,12 @@ export default function App(): JSX.Element {
           ))}
         </ul>
       </section>
+
+      {settings.showStatusBar && (
+        <footer className="statusbar">
+          theme={settings.theme} / accent={settings.accentColor} / notes={notes.length}
+        </footer>
+      )}
     </div>
   )
 }
