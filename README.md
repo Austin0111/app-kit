@@ -36,7 +36,8 @@ npm run db:generate スキーマ変更後のマイグレーション生成
 | `src/main/db/` | DB とマイグレーション適用。スキーマは `schema.ts` |
 | `src/main/backup.ts` | バックアップ／復元。自動世代管理つき |
 | `src/main/crash-log.ts` | 未処理例外を `crash.log` に残す。**何よりも先に仕掛ける** |
-| `src/renderer/src/ui/` | モーダル（confirm / prompt / 任意ボタン）とトースト |
+| `src/main/window.ts` | 窓制御（最小化 / 最大化 / 閉じる）と最大化状態の push |
+| `src/renderer/src/ui/` | カスタムタイトルバー、モーダル（confirm / prompt / 任意ボタン）、トースト |
 | `src/main/spawn.ts` | 外部プロセス起動。**どこからも import していない。要らなければ消してよい** |
 
 `notes` テーブルと画面上の一覧は**動作確認用**。新アプリでは消してよい。
@@ -60,3 +61,13 @@ npm run db:generate スキーマ変更後のマイグレーション生成
   `onCancel` では Esc が拾えないので ref 経由でネイティブに張る
 - **子プロセスの出力は UTF-8 とは限らない**。Windows の既定コードページは CP932。
   詳細と対処は `src/main/spawn.ts` の冒頭コメント
+- **タイトルバーに操作要素を足したら `-webkit-app-region: no-drag` を当てる**。
+  忘れるとクリックがドラッグ領域に飲まれて反応しなくなる
+- **最大化状態は main から push で受け取る**。最大化はボタン以外でも起きる
+  （画面端スナップ・バーのダブルクリック・Win+↑）ので、ボタン押下時だけ更新すると
+  アイコンが実際とズレる
+
+### 標準のタイトルバーに戻したい場合
+
+`src/main/index.ts` の `frame: false` / `titleBarStyle` / `minWidth` / `minHeight` を消し、
+`App.tsx` から `<TitleBar />` を外す。CSS の `.app { padding-top }` も戻す。

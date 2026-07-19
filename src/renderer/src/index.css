@@ -108,6 +108,77 @@ input[type='color'] {
   font-size: 12px;
 }
 
+/* ── カスタムタイトルバー ── */
+.titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  background: #101014;
+  border-bottom: 1px solid var(--line);
+  z-index: 40;
+  /* ここがドラッグ領域。Windows ではキャプション扱いになり、
+     ダブルクリック最大化と画面端スナップが自前実装なしで効く */
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.titlebar__title {
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.titlebar__slot {
+  flex: 1;
+  min-width: 0;
+}
+
+.titlebar__buttons {
+  margin-left: auto;
+  display: flex;
+  height: 100%;
+}
+
+/* ドラッグ領域の中の操作要素には no-drag が必須。
+   付け忘れるとクリックがドラッグに飲まれて反応しなくなる。 */
+.titlebar__slot,
+.titlebar__button {
+  -webkit-app-region: no-drag;
+}
+
+.titlebar__button {
+  width: 46px;
+  height: 100%;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--muted);
+  cursor: default;
+}
+
+.titlebar__button:hover {
+  background: #26262e;
+  color: var(--fg);
+}
+
+.titlebar__button.is-close:hover {
+  background: #c42b1c;
+  color: #fff;
+}
+
+/* タイトルバーの分だけ本文を下げる */
+.app {
+  padding-top: 58px;
+}
+
 /* ── トースト ── */
 .toast-stack {
   position: fixed;
@@ -245,4 +316,15 @@ body:has(.app[data-theme='light']) .dialog__button {
 body:has(.app[data-theme='light']) .dialog__button.is-primary,
 body:has(.app[data-theme='light']) .dialog__button.is-danger {
   color: #fff;
+}
+
+/* タイトルバーはトップレイヤーではないが、.app の外にあるので同じく body から当てる */
+body:has(.app[data-theme='light']) .titlebar {
+  background: #ebebf0;
+  border-bottom-color: #dcdce2;
+}
+
+body:has(.app[data-theme='light']) .titlebar__button:hover {
+  background: #dcdce2;
+  color: #1a1a1e;
 }

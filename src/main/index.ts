@@ -6,6 +6,7 @@ import { notes } from './db/schema'
 import { installCrashLog } from './crash-log'
 import { SettingsStore } from './settings'
 import { BackupService, backupDir } from './backup'
+import { registerWindowHandlers, watchMaximizeState } from './window'
 import type { Settings } from '../shared/settings'
 
 // 未処理例外の安全網は「何よりも先に」入れる（Oto棚の作法）。
@@ -25,6 +26,12 @@ function createWindow(): void {
     x: bounds?.x,
     y: bounds?.y,
     show: false,
+    // 標準枠を外して自前タイトルバーを使う（src/renderer/src/ui/TitleBar.tsx）
+    frame: false,
+    titleBarStyle: 'hidden',
+    // 枠が無いと最小サイズを割ると崩れやすいので下限を決めておく
+    minWidth: 480,
+    minHeight: 360,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -35,6 +42,7 @@ function createWindow(): void {
 
   if (bounds?.maximized) win.maximize()
   win.once('ready-to-show', () => win.show())
+  watchMaximizeState(win)
 
   // 終了時ではなく閉じる直前に控える。終了時に書こうとすると
   // プロセスが先に落ちて保存できないことがある。
@@ -64,6 +72,8 @@ app.whenReady().then(() => {
   // 自動バックアップは起動を待たせないよう投げっぱなしにする。
   // 失敗しても中で握って crash.log に残すだけ。
   void backup.maybeAutoBackup()
+
+  registerWindowHandlers()
 
   // ── 設定 KV ──
   ipcMain.handle('settings:getAll', () => settings.getAll())

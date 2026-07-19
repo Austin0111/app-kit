@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Api } from '../../preload'
 import { useSettings } from './useSettings'
-import { useDialog, useToast } from './ui'
+import { useDialog, useToast, TitleBar } from './ui'
 
 declare global {
   interface Window {
@@ -87,6 +87,7 @@ export default function App(): JSX.Element {
       data-theme={settings.theme}
       style={{ '--accent': settings.accentColor } as React.CSSProperties}
     >
+      <TitleBar title="app-kit" />
       <h1>app-kit</h1>
       <p className="muted">
         雛形の動作確認。{loaded ? '設定を読み込み済み' : '設定を読み込み中…'}

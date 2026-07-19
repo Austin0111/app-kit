@@ -3,6 +3,18 @@ import type { Settings } from '../shared/settings'
 
 // 生のチャンネル名は renderer に晒さない（CommandDeck の preload と同じ原則）。
 const api = {
+  window: {
+    minimize: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
+    toggleMaximize: (): Promise<boolean> => ipcRenderer.invoke('window:toggleMaximize'),
+    close: (): Promise<void> => ipcRenderer.invoke('window:close'),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke('window:isMaximized'),
+    /** ボタン以外での最大化（スナップ・ダブルクリック・Win+↑）も拾うための購読 */
+    onMaximizedChange: (cb: (maximized: boolean) => void): (() => void) => {
+      const listener = (_e: IpcRendererEvent, v: boolean): void => cb(v)
+      ipcRenderer.on('window:maximizedChanged', listener)
+      return () => ipcRenderer.off('window:maximizedChanged', listener)
+    }
+  },
   settings: {
     getAll: (): Promise<Settings> => ipcRenderer.invoke('settings:getAll'),
     setMany: (patch: Partial<Settings>): Promise<void> =>
