@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Api } from '../../preload'
 import { useSettings } from './useSettings'
+import { useDialog, useToast } from './ui'
 
 declare global {
   interface Window {
@@ -19,6 +20,8 @@ function formatSize(bytes: number): string {
 
 export default function App(): JSX.Element {
   const { settings, update, loaded } = useSettings()
+  const toast = useToast()
+  const dialog = useDialog()
   const [notes, setNotes] = useState<Note[]>([])
   const [draft, setDraft] = useState('')
   const [backups, setBackups] = useState<BackupEntry[]>([])
@@ -29,8 +32,23 @@ export default function App(): JSX.Element {
   }, [])
 
   async function createBackup(): Promise<void> {
-    await window.api.backup.create()
-    setBackups(await window.api.backup.list())
+    try {
+      await window.api.backup.create()
+      setBackups(await window.api.backup.list())
+      toast.success('バックアップを取った')
+    } catch (err) {
+      toast.error(`バックアップに失敗した: ${String(err)}`)
+    }
+  }
+
+  async function restoreBackup(entry: BackupEntry): Promise<void> {
+    const ok = await dialog.confirm(
+      'このバックアップで現在のデータを置き換える',
+      `${entry.name}（${formatSize(entry.size)}）を復元する。現在のデータは失われ、アプリは再起動する。`,
+      { okLabel: '復元して再起動', danger: true }
+    )
+    if (!ok) return
+    await window.api.backup.restore(entry.path)
   }
 
   async function addNote(): Promise<void> {
@@ -41,9 +59,26 @@ export default function App(): JSX.Element {
     setNotes(await window.api.notes.list())
   }
 
-  async function removeNote(id: number): Promise<void> {
-    await window.api.notes.remove(id)
+  async function renameNote(note: Note): Promise<void> {
+    const next = await dialog.prompt('内容を書き換える', { initial: note.body })
+    if (next === null) return
+    if (!next.trim()) {
+      toast.error('空にはできぬ')
+      return
+    }
+    await window.api.notes.update(note.id, next.trim())
     setNotes(await window.api.notes.list())
+  }
+
+  async function removeNote(note: Note): Promise<void> {
+    const ok = await dialog.confirm('この項目を削除する', note.body, {
+      okLabel: '削除',
+      danger: true
+    })
+    if (!ok) return
+    await window.api.notes.remove(note.id)
+    setNotes(await window.api.notes.list())
+    toast.success('削除した')
   }
 
   return (
@@ -94,7 +129,10 @@ export default function App(): JSX.Element {
           {notes.map((n) => (
             <li key={n.id}>
               <span>{n.body}</span>
-              <button onClick={() => removeNote(n.id)}>×</button>
+              <span className="row">
+                <button onClick={() => renameNote(n)}>編集</button>
+                <button onClick={() => removeNote(n)}>×</button>
+              </span>
             </li>
           ))}
         </ul>
@@ -119,7 +157,7 @@ export default function App(): JSX.Element {
                 {b.name}
                 <span className="muted"> — {formatSize(b.size)}</span>
               </span>
-              <button onClick={() => window.api.backup.restore(b.path)}>復元</button>
+              <button onClick={() => restoreBackup(b)}>復元</button>
             </li>
           ))}
         </ul>

@@ -26,6 +26,8 @@ const api = {
     list: (): Promise<{ id: number; body: string; createdAt: string; done: boolean }[]> =>
       ipcRenderer.invoke('notes:list'),
     add: (body: string): Promise<void> => ipcRenderer.invoke('notes:add', body),
+    update: (id: number, body: string): Promise<void> =>
+      ipcRenderer.invoke('notes:update', id, body),
     remove: (id: number): Promise<void> => ipcRenderer.invoke('notes:remove', id)
   }
 }

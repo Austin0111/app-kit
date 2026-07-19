@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { eq } from 'drizzle-orm'
 import { createDb } from './db'
@@ -79,19 +79,11 @@ app.whenReady().then(() => {
   /**
    * 復元は「待避 → 再起動」の2段。即座に入れ替えないのは、
    * 起動中の DB ファイルを掴んでいて上書きできないため。
+   *
+   * 実行確認はレンダラ側の共通ダイアログ（ui/dialog）で取る。
+   * main 側でも showMessageBox を出すと二重に確認することになるので置かない。
    */
-  ipcMain.handle('backup:restore', async (_e, path: string) => {
-    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
-    const answer = await dialog.showMessageBox(win, {
-      type: 'warning',
-      buttons: ['復元して再起動', 'やめる'],
-      defaultId: 1,
-      cancelId: 1,
-      message: 'このバックアップで現在のデータを置き換える',
-      detail: `${path}\n\n現在のデータは失われる。よければ再起動して復元する。`
-    })
-    if (answer.response !== 0) return false
-
+  ipcMain.handle('backup:restore', (_e, path: string) => {
     backup.stageRestore(path)
     app.relaunch()
     app.quit()
@@ -103,6 +95,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle('notes:add', (_e, body: string) => {
     store.db.insert(notes).values({ body, createdAt: new Date().toISOString() }).run()
+  })
+
+  ipcMain.handle('notes:update', (_e, id: number, body: string) => {
+    store.db.update(notes).set({ body }).where(eq(notes.id, id)).run()
   })
 
   ipcMain.handle('notes:remove', (_e, id: number) => {

@@ -108,6 +108,105 @@ input[type='color'] {
   font-size: 12px;
 }
 
+/* ── トースト ── */
+.toast-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 50;
+}
+
+.toast {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #22222a;
+  color: var(--fg);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 35%);
+  animation: toast-in 0.14s ease-out;
+}
+
+.toast--success {
+  border-left: 3px solid #3fb950;
+}
+.toast--error {
+  border-left: 3px solid #f85149;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ── ダイアログ ── */
+.dialog {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+
+.dialog__panel {
+  min-width: 340px;
+  max-width: 460px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #1e1e24;
+  color: var(--fg);
+}
+
+.dialog__title {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.dialog__message {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.dialog__input {
+  width: 100%;
+  margin-top: 12px;
+  box-sizing: border-box;
+}
+
+.dialog__buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.dialog__button {
+  background: #2c2c34;
+  color: var(--fg);
+}
+
+.dialog__button.is-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.dialog__button.is-danger {
+  background: #b62324;
+  color: #fff;
+}
+
 /* テーマはトークンの差し替えだけで切り替える（Oto棚の色辞書方式と同じ考え方）。
    個々のスタイル側には手を入れない。 */
 .app[data-theme='light'] {
@@ -126,4 +225,24 @@ input[type='color'] {
 .app[data-theme='light'] input {
   background: #fff;
   color: inherit;
+}
+
+/* ライト時はダイアログ／トーストも合わせる。
+   :has() で「ライトのアプリを含むページ」を判定する。<dialog> は
+   トップレイヤーへ出て .app の外側に描画されるため、子孫セレクタでは届かない。 */
+body:has(.app[data-theme='light']) .dialog__panel,
+body:has(.app[data-theme='light']) .toast {
+  background: #fff;
+  color: #1a1a1e;
+  border-color: #dcdce2;
+}
+
+body:has(.app[data-theme='light']) .dialog__button {
+  background: #ebebf0;
+  color: #1a1a1e;
+}
+
+body:has(.app[data-theme='light']) .dialog__button.is-primary,
+body:has(.app[data-theme='light']) .dialog__button.is-danger {
+  color: #fff;
 }
