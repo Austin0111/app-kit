@@ -1,0 +1,1 @@
+ALTER TABLE `notes` ADD `done` integer DEFAULT false NOT NULL;
