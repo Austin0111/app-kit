@@ -34,7 +34,10 @@ export const SETTINGS_DEFAULTS = {
   /** 保持する世代数。超えた分は古いものから消す。 */
   backupRetention: 10,
   /** 最後に自動バックアップを取った時刻（ISO8601）。未実施なら null。 */
-  lastBackupAt: null as string | null
+  lastBackupAt: null as string | null,
+
+  /** debug レベルのログを記録するか。既定は off（ログが膨らむため）。 */
+  debugLogging: false
 }
 
 export type Settings = typeof SETTINGS_DEFAULTS

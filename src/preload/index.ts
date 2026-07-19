@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import type { Settings } from '../shared/settings'
+import type { LogContext, LogLevel } from '../shared/log-types'
 
 // 生のチャンネル名は renderer に晒さない（CommandDeck の preload と同じ原則）。
 const api = {
@@ -25,6 +26,11 @@ const api = {
       ipcRenderer.on('settings:changed', listener)
       return () => ipcRenderer.off('settings:changed', listener)
     }
+  },
+  log: {
+    write: (level: LogLevel, message: string, context?: LogContext): Promise<void> =>
+      ipcRenderer.invoke('log:write', level, message, context),
+    openFolder: (): Promise<string> => ipcRenderer.invoke('log:openFolder')
   },
   backup: {
     create: (): Promise<string> => ipcRenderer.invoke('backup:create'),

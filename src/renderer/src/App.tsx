@@ -145,6 +145,7 @@ export default function App(): JSX.Element {
         <div className="row">
           <button onClick={createBackup}>今すぐバックアップ</button>
           <button onClick={() => window.api.backup.openFolder()}>フォルダを開く</button>
+          <button onClick={() => window.api.log.openFolder()}>ログを開く</button>
         </div>
         <p className="muted">
           {settings.backupIntervalDays > 0

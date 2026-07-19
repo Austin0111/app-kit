@@ -8,7 +8,9 @@ import { installCrashLog } from './crash-log'
 import { SettingsStore } from './settings'
 import { BackupService, backupDir } from './backup'
 import { registerWindowHandlers, watchMaximizeState } from './window'
+import { log, logFromRenderer, logsDir, setDebugLogging } from './log'
 import type { Settings } from '../shared/settings'
+import type { LogContext, LogLevel } from '../shared/log-types'
 
 // 未処理例外の安全網は「何よりも先に」入れる（Oto棚の作法）。
 // ここより前で落ちると原因が残らないため、DB を開くより前に仕掛ける。
@@ -82,6 +84,13 @@ app.whenReady().then(() => {
   settings = new SettingsStore(store.db)
   backup = new BackupService(store.sqlite, store.file, settings)
 
+  setDebugLogging(settings.get('debugLogging'))
+  log.info('起動した', {
+    バージョン: app.getVersion(),
+    Electron: process.versions.electron,
+    保存先: app.getPath('userData')
+  })
+
   // 自動バックアップは起動を待たせないよう投げっぱなしにする。
   // 失敗しても中で握って crash.log に残すだけ。
   void backup.maybeAutoBackup()
@@ -93,6 +102,12 @@ app.whenReady().then(() => {
   ipcMain.handle('settings:setMany', (_e, patch: Partial<Settings>) => {
     settings.setMany(patch)
   })
+
+  // ── ログ ──
+  ipcMain.handle('log:write', (_e, level: LogLevel, message: string, context?: LogContext) => {
+    logFromRenderer(level, message, context)
+  })
+  ipcMain.handle('log:openFolder', () => shell.openPath(logsDir()))
 
   // ── バックアップ ──
   ipcMain.handle('backup:create', () => backup.create())

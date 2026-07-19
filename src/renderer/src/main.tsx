@@ -3,7 +3,11 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import { UiProvider } from './ui'
 import { DISPLAY_NAME } from '../../shared/app-meta'
+import { installRendererErrorLogging } from './log'
 import './index.css'
+
+// 画面側の例外を記録に残す（DevTools を開かないと分からない状態にしない）
+installRendererErrorLogging()
 
 // index.html の <title> は**ページ読み込み時に BrowserWindow の title を上書きする**。
 // タスクバーや Alt+Tab に出る名前を表示名に揃えるため、ここで明示的に設定する。

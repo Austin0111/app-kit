@@ -60,7 +60,8 @@ npm run db:generate スキーマ変更後のマイグレーション生成
 | `src/main/settings.ts` | 設定KV の永続化。値は JSON 文字列で 1 列に持つ。変更は全ウィンドウへ配信 |
 | `src/main/db/` | DB とマイグレーション適用。スキーマは `schema.ts` |
 | `src/main/backup.ts` | バックアップ／復元。自動世代管理つき |
-| `src/main/crash-log.ts` | 未処理例外を `crash.log` に残す。**何よりも先に仕掛ける** |
+| `src/main/log/` | ログ基盤。伏せ字・ローテーション込み（下記） |
+| `src/main/crash-log.ts` | 未処理例外をログへ残す。**何よりも先に仕掛ける** |
 | `src/main/window.ts` | 窓制御（最小化 / 最大化 / 閉じる）と最大化状態の push |
 | `src/renderer/src/ui/` | カスタムタイトルバー、モーダル（confirm / prompt / 任意ボタン）、トースト |
 | `src/main/spawn.ts` | 外部プロセス起動。**どこからも import していない。要らなければ消してよい** |
@@ -73,6 +74,41 @@ npm run db:generate スキーマ変更後のマイグレーション生成
 `drizzle/` に差分 SQL が生成される。適用は起動時に自動。
 
 **`drizzle/` は commit する**（適用履歴そのもの）。`.gitignore` に入れてはいけない。
+
+## ログ
+
+`userData/logs/` に出る。**不具合報告としてそのまま渡せる形**を目指している。
+
+| ファイル | 用途 |
+|---|---|
+| `app.jsonl` | 全レベルを 1 行 1 JSON。機械が読む用。5MB × 3 世代 |
+| `error.log` | warn / error だけを整形。**人がそのまま貼れる**。2MB × 3 世代 |
+
+```ts
+log.error('APIの呼び出しに失敗した', {
+  API: 'https://example.com/v2/user',
+  HTTP: 429,
+  'Request ID': 'req_abc123',
+  Response: 'rate limit exceeded'
+})
+```
+
+```
+[エラー] APIの呼び出しに失敗した
+  発生       : 2026/7/20 8:48:52
+  API        : https://example.com/v2/user
+  HTTP       : 429
+  Request ID : req_abc123
+  Response   : rate limit exceeded
+```
+
+- **秘密情報は書き出し時に自動で伏せる**（`log/redact.ts`）。キー名に `token` `password`
+  `api_key` `authorization` 等を含むもの、URL のクエリ、`Bearer xxx` が対象。
+  **消さずに `***` に置き換える**（「無かった」のか「あったが誤り」なのかを区別するため）
+- **ローテーションはサイズ主**。日数だと容量が抑えられない（クローラー等は 1 日で数百MB）。
+  饒舌なログが見たいエラーを押し出す問題は、error.log を別系統にして解いている
+- **画面側の例外も記録する**。これが無いと React の不具合が DevTools にしか出ない
+- `debug` は既定で書かない。設定の `debugLogging` で有効化する
 
 ## 覚えておくこと
 
