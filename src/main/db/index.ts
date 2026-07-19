@@ -4,6 +4,7 @@ import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import * as schema from './schema'
+import { applyPendingRestore } from '../backup'
 
 export type Db = ReturnType<typeof createDb>
 
@@ -16,6 +17,11 @@ export type Db = ReturnType<typeof createDb>
  */
 export function createDb() {
   const file = join(app.getPath('userData'), 'app-kit.db')
+
+  // 復元ファイルの適用は「DB を開く前」でなければならない。
+  // 開いた後だとファイルを掴んでいて置き換えられない（実機で確認済み）。
+  applyPendingRestore(file)
+
   const sqlite = new Database(file)
   sqlite.pragma('journal_mode = WAL')
   sqlite.pragma('foreign_keys = ON')

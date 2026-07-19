@@ -26,7 +26,15 @@ export const SETTINGS_DEFAULTS = {
   accentColor: '#7c3aed',
   sidebarWidth: 260,
   showStatusBar: true,
-  windowBounds: null as WindowBounds | null
+  windowBounds: null as WindowBounds | null,
+
+  // ── バックアップ ──
+  /** 自動バックアップの間隔（日）。0 で自動バックアップを止める。 */
+  backupIntervalDays: 7,
+  /** 保持する世代数。超えた分は古いものから消す。 */
+  backupRetention: 10,
+  /** 最後に自動バックアップを取った時刻（ISO8601）。未実施なら null。 */
+  lastBackupAt: null as string | null
 }
 
 export type Settings = typeof SETTINGS_DEFAULTS

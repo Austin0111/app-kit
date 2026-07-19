@@ -14,6 +14,14 @@ const api = {
       return () => ipcRenderer.off('settings:changed', listener)
     }
   },
+  backup: {
+    create: (): Promise<string> => ipcRenderer.invoke('backup:create'),
+    list: (): Promise<
+      { path: string; name: string; size: number; createdAt: string }[]
+    > => ipcRenderer.invoke('backup:list'),
+    restore: (path: string): Promise<boolean> => ipcRenderer.invoke('backup:restore', path),
+    openFolder: (): Promise<string> => ipcRenderer.invoke('backup:openFolder')
+  },
   notes: {
     list: (): Promise<{ id: number; body: string; createdAt: string; done: boolean }[]> =>
       ipcRenderer.invoke('notes:list'),

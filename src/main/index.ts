@@ -1,10 +1,11 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { eq } from 'drizzle-orm'
 import { createDb } from './db'
 import { notes } from './db/schema'
 import { installCrashLog } from './crash-log'
 import { SettingsStore } from './settings'
+import { BackupService, backupDir } from './backup'
 import type { Settings } from '../shared/settings'
 
 // 未処理例外の安全網は「何よりも先に」入れる（Oto棚の作法）。
@@ -13,6 +14,7 @@ installCrashLog()
 
 let store: ReturnType<typeof createDb>
 let settings: SettingsStore
+let backup: BackupService
 
 function createWindow(): void {
   const bounds = settings.get('windowBounds')
@@ -57,11 +59,43 @@ function createWindow(): void {
 app.whenReady().then(() => {
   store = createDb()
   settings = new SettingsStore(store.db)
+  backup = new BackupService(store.sqlite, store.file, settings)
+
+  // 自動バックアップは起動を待たせないよう投げっぱなしにする。
+  // 失敗しても中で握って crash.log に残すだけ。
+  void backup.maybeAutoBackup()
 
   // ── 設定 KV ──
   ipcMain.handle('settings:getAll', () => settings.getAll())
   ipcMain.handle('settings:setMany', (_e, patch: Partial<Settings>) => {
     settings.setMany(patch)
+  })
+
+  // ── バックアップ ──
+  ipcMain.handle('backup:create', () => backup.create())
+  ipcMain.handle('backup:list', () => backup.list())
+  ipcMain.handle('backup:openFolder', () => shell.openPath(backupDir()))
+
+  /**
+   * 復元は「待避 → 再起動」の2段。即座に入れ替えないのは、
+   * 起動中の DB ファイルを掴んでいて上書きできないため。
+   */
+  ipcMain.handle('backup:restore', async (_e, path: string) => {
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+    const answer = await dialog.showMessageBox(win, {
+      type: 'warning',
+      buttons: ['復元して再起動', 'やめる'],
+      defaultId: 1,
+      cancelId: 1,
+      message: 'このバックアップで現在のデータを置き換える',
+      detail: `${path}\n\n現在のデータは失われる。よければ再起動して復元する。`
+    })
+    if (answer.response !== 0) return false
+
+    backup.stageRestore(path)
+    app.relaunch()
+    app.quit()
+    return true
   })
 
   // ── 動作確認用 ──
