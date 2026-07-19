@@ -5,6 +5,7 @@ import { drizzle } from 'drizzle-orm/better-sqlite3'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import * as schema from './schema'
 import { applyPendingRestore } from '../backup'
+import { DB_FILENAME } from '../../shared/app-meta'
 
 export type Db = ReturnType<typeof createDb>
 
@@ -16,7 +17,7 @@ export type Db = ReturnType<typeof createDb>
  * __drizzle_migrations テーブルで管理される＝自前のマイグレーション機構は不要。
  */
 export function createDb() {
-  const file = join(app.getPath('userData'), 'app-kit.db')
+  const file = join(app.getPath('userData'), DB_FILENAME)
 
   // 復元ファイルの適用は「DB を開く前」でなければならない。
   // 開いた後だとファイルを掴んでいて置き換えられない（実機で確認済み）。

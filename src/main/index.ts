@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
+import { APP_ID, DISPLAY_NAME, INTERNAL_NAME } from '../shared/app-meta'
 import { eq } from 'drizzle-orm'
 import { createDb } from './db'
 import { notes } from './db/schema'
@@ -12,6 +13,16 @@ import type { Settings } from '../shared/settings'
 // 未処理例外の安全網は「何よりも先に」入れる（Oto棚の作法）。
 // ここより前で落ちると原因が残らないため、DB を開くより前に仕掛ける。
 installCrashLog()
+
+// ── 保存先の固定（**userData を触る処理より前に実行すること**）──
+// 既定の userData は package.json の name / productName から派生するため、
+// 表示名を変えたり配布形態が変わったりすると保存先が動き、
+// 設定・DB・バックアップが行方不明になる。内部識別子に明示的に固定して防ぐ。
+// （PixNest が同じ対策を採っている）
+app.setName(INTERNAL_NAME)
+app.setPath('userData', join(app.getPath('appData'), INTERNAL_NAME))
+// タスクバーのグループ化・通知の識別子。インストーラ側の設定と一致させること。
+app.setAppUserModelId(APP_ID)
 
 let store: ReturnType<typeof createDb>
 let settings: SettingsStore
@@ -32,6 +43,8 @@ function createWindow(): void {
     // 枠が無いと最小サイズを割ると崩れやすいので下限を決めておく
     minWidth: 480,
     minHeight: 360,
+    // 枠は自前だが、タスクバーや Alt+Tab には OS がこの値を出す
+    title: DISPLAY_NAME,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,

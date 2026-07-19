@@ -4,6 +4,7 @@ import { join } from 'path'
 import type BetterSqlite3 from 'better-sqlite3'
 import type { SettingsStore } from './settings'
 import { logCrash } from './crash-log'
+import { INTERNAL_NAME } from '../shared/app-meta'
 
 /**
  * バックアップと復元。
@@ -26,7 +27,8 @@ import { logCrash } from './crash-log'
  */
 
 const RESTORE_SUFFIX = '.restore'
-const BACKUP_PREFIX = 'app-kit_'
+// バックアップ名も表示名ではなく内部識別子から作る（改名しても既存分を見失わない）
+const BACKUP_PREFIX = `${INTERNAL_NAME}_`
 const BACKUP_EXT = '.db'
 
 /**

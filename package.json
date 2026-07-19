@@ -7,11 +7,43 @@
   "private": true,
   "scripts": {
     "dev": "electron-vite dev",
-    "build": "electron-vite build",
+    "build": "electron-vite build && npm run check:names",
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit",
+    "check:names": "node scripts/check-names.mjs",
     "db:generate": "drizzle-kit generate",
     "rebuild": "electron-rebuild -w better-sqlite3"
+  },
+  "build": {
+    "appId": "dev.austin.app-kit",
+    "productName": "app-kit",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "drizzle/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "drizzle",
+        "to": "drizzle"
+      }
+    ],
+    "asarUnpack": [
+      "**/*.node",
+      "node_modules/better-sqlite3/**"
+    ],
+    "npmRebuild": false,
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    }
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",

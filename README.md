@@ -5,6 +5,31 @@
 
 **使い方**: このフォルダごとコピーして名前を変える。既存アプリを触る話ではない。
 
+## 名前の決まり
+
+`src/shared/app-meta.ts` が唯一の出所。**表示名と内部識別子を分離**してあるので、
+表示名はいつでも変えられる。
+
+| | 例 | 可変 | 使われる場所 |
+|---|---|---|---|
+| `INTERNAL_NAME` | `app-kit` | **不変** | userData フォルダ名 / DB / バックアップ名 |
+| `DISPLAY_NAME` | `app-kit` | **可変** | ウィンドウタイトル / タイトルバー / About |
+| `APP_ID` | `dev.austin.app-kit` | **不変** | AppUserModelID / electron-builder |
+
+### 新しいアプリを作るとき
+
+1. `app-meta.ts` の 3 つを決める（この時点なら `INTERNAL_NAME` も自由）
+2. `package.json` の `name` / `build.productName` / `build.appId` を合わせる
+3. `npm run check:names` でズレていないか確認
+
+### 表示名を変えるとき
+
+`DISPLAY_NAME` と `package.json` の `build.productName` の **2 箇所**を書き換えて
+`npm run check:names`。**それ以外は触らない**（触ると保存先が動く）。
+
+> **`INTERNAL_NAME` は後から変えないこと。** userData の場所が変わり、
+> 既存の設定・DB・バックアップを見失う。
+
 ## スタック
 
 electron-vite / React 18 / TypeScript / better-sqlite3 / Drizzle ORM
