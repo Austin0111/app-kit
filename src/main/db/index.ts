@@ -1,4 +1,5 @@
 import { app } from 'electron'
+import { existsSync } from 'fs'
 import { join } from 'path'
 import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
@@ -36,8 +37,31 @@ export function createDb() {
   return { db, sqlite, file }
 }
 
+/**
+ * マイグレーション（drizzle/）の場所を探す。
+ *
+ * **`app.getAppPath()` だけに頼ってはいけない。** 起動のされ方で値が変わる。
+ * `electron out/main/index.js` のように直接起動した場合（自動テストがこの形）に
+ * 外れて `Can't find meta/_journal.json` で起動できなくなる。実際に踏んだ。
+ *
+ * 候補を順に見て、実際に journal がある場所を採る。
+ */
 function resolveMigrationsFolder(): string {
-  return app.isPackaged
-    ? join(process.resourcesPath, 'drizzle')
-    : join(app.getAppPath(), 'drizzle')
+  const candidates = app.isPackaged
+    ? [join(process.resourcesPath, 'drizzle')]
+    : [
+        // out/main/index.js から見たリポジトリ直下
+        join(__dirname, '..', '..', 'drizzle'),
+        join(app.getAppPath(), 'drizzle'),
+        join(process.cwd(), 'drizzle')
+      ]
+
+  for (const dir of candidates) {
+    if (existsSync(join(dir, 'meta', '_journal.json'))) return dir
+  }
+
+  // 見つからない場合も、どこを探したのかを残す（黙って落ちると原因が分からない）
+  throw new Error(
+    `マイグレーション（drizzle/）が見つからない。探した場所:\n  ${candidates.join('\n  ')}`
+  )
 }

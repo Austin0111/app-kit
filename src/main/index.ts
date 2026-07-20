@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { APP_ID, DISPLAY_NAME, INTERNAL_NAME } from '../shared/app-meta'
 import { eq } from 'drizzle-orm'
@@ -22,8 +22,14 @@ installCrashLog()
 // 表示名を変えたり配布形態が変わったりすると保存先が動き、
 // 設定・DB・バックアップが行方不明になる。内部識別子に明示的に固定して防ぐ。
 // （PixNest が同じ対策を採っている）
+//
+// ただし固定してしまうと Electron の --user-data-dir も効かなくなり、
+// **自動テストが本番のデータを壊す**。環境変数での差し替えだけは許す。
 app.setName(INTERNAL_NAME)
-app.setPath('userData', join(app.getPath('appData'), INTERNAL_NAME))
+app.setPath(
+  'userData',
+  process.env.APP_KIT_USER_DATA ?? join(app.getPath('appData'), INTERNAL_NAME)
+)
 // タスクバーのグループ化・通知の識別子。インストーラ側の設定と一致させること。
 app.setAppUserModelId(APP_ID)
 
@@ -81,7 +87,30 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(startup).catch(onStartupFailed)
+
+/**
+ * 起動処理が失敗した時に、**黙って死なせない**。
+ *
+ * 以前は whenReady の中で例外が出ると窓が作られないまま静かに終わり、
+ * ログを見るまで何が起きたのか分からなかった（実際に踏んだ）。
+ * 利用者にとっては「起動しない」としか見えないので、必ず理由を出す。
+ */
+function onStartupFailed(err: unknown): void {
+  log.error('起動に失敗した', { 詳細: err })
+  const detail = err instanceof Error ? err.message : String(err)
+  try {
+    dialog.showErrorBox(
+      `${DISPLAY_NAME} を起動できなかった`,
+      `${detail}\n\n詳しい記録: ${join(app.getPath('userData'), 'logs', 'error.log')}`
+    )
+  } catch {
+    // ダイアログすら出せない状況でも、ログには残っている
+  }
+  app.quit()
+}
+
+function startup(): void {
   store = createDb()
   settings = new SettingsStore(store.db)
   backup = new BackupService(store.sqlite, store.file, settings)
@@ -168,7 +197,7 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
-})
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()

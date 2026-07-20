@@ -185,6 +185,13 @@ input[type='color'] {
   padding-top: 58px;
 }
 
+/* ステータスバーは position:fixed なので、その分だけ下に余白を確保する。
+   これが無いと最後の要素がバーの下に潜り込み、スクロールしても読めなくなる
+   （狭い幅のスクリーンショットで実際に見つかった）。 */
+.app:has(.statusbar) {
+  padding-bottom: 48px;
+}
+
 /* ── トースト ── */
 .toast-stack {
   position: fixed;
