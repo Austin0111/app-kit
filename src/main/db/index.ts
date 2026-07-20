@@ -7,6 +7,7 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import * as schema from './schema'
 import { applyPendingRestore } from '../backup'
 import { DB_FILENAME } from '../../shared/app-meta'
+import { log } from '../log'
 
 export type Db = ReturnType<typeof createDb>
 
@@ -27,6 +28,24 @@ export function createDb() {
   const sqlite = new Database(file)
   sqlite.pragma('journal_mode = WAL')
   sqlite.pragma('foreign_keys = ON')
+
+  // 起動時の軽い整合性チェック（映棚の作法）。
+  // 壊れていることに「クエリが失敗して初めて気づく」事態を避ける。
+  // quick_check は full な integrity_check より軽く、起動を待たせない。
+  // **落とさない。** 壊れていても読める部分はあるし、ここで止めると
+  // バックアップからの復元すらできなくなる。
+  try {
+    const rows = sqlite.pragma('quick_check') as { quick_check: string }[]
+    const ok = rows.length === 1 && rows[0]?.quick_check === 'ok'
+    if (!ok) {
+      log.error('データベースに異常が見つかった。バックアップからの復元を検討してほしい', {
+        結果: rows.slice(0, 5),
+        ファイル: file
+      })
+    }
+  } catch (err) {
+    log.warn('整合性チェックを実行できなかった', { 詳細: err })
+  }
 
   const db = drizzle(sqlite, { schema })
 

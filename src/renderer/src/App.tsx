@@ -35,6 +35,10 @@ export default function App(): JSX.Element {
   const [draft, setDraft] = useState('')
   const [backups, setBackups] = useState<BackupEntry[]>([])
   const [apiKeyStatus, setApiKeyStatus] = useState<string>('unset')
+  // エラー境界が働くかを確かめるための仕掛け。真になると描画が失敗する。
+  // 検証用なので配布版では触れない（下のボタンを出さない）
+  const [boom, setBoom] = useState(false)
+  if (boom) throw new Error('確認用: わざと描画に失敗させた')
 
   useEffect(() => {
     window.api.notes.list().then(setNotes)
@@ -211,6 +215,9 @@ export default function App(): JSX.Element {
           <button onClick={createBackup}>今すぐバックアップ</button>
           <button onClick={() => window.api.backup.openFolder()}>フォルダを開く</button>
           <button onClick={() => window.api.log.openFolder()}>ログを開く</button>
+          {window.api.isE2E && (
+            <button onClick={() => setBoom(true)}>描画を壊す（確認用）</button>
+          )}
         </div>
         <p className="muted">
           {settings.backupIntervalDays > 0

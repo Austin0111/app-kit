@@ -101,6 +101,30 @@ test.describe('UI 部品', () => {
     expect(overlap!.hidden).toBe(false)
   })
 
+  /**
+   * メニューバーを消すと標準ショートカットが道連れになる恐れがあるため確かめる。
+   * 入力欄での編集操作が効かなくなるのは致命的なので、ここは見張っておく。
+   */
+  test('メニューを消しても入力欄の編集操作が効く', async () => {
+    const { page } = ctx
+    const input = page.getByPlaceholder('何か書いて Enter')
+
+    await input.fill('最初の文字列')
+    await input.press('Control+a')
+    await input.type('置き換えた')
+    // 全選択が効いていれば、追記ではなく置換になる
+    await expect(input).toHaveValue('置き換えた')
+
+    await input.press('Control+a')
+    await input.press('Backspace')
+    await expect(input).toHaveValue('')
+  })
+
+  test('メニューバーが出ていない', async () => {
+    const hasMenu = await ctx.app.evaluate(({ Menu }) => Menu.getApplicationMenu() !== null)
+    expect(hasMenu).toBe(false)
+  })
+
   test('コンソールにエラーが出ていない', async () => {
     expect(ctx.consoleErrors).toEqual([])
   })

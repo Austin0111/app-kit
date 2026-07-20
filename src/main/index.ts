@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, screen, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, screen, shell } from 'electron'
 import { join } from 'path'
 import { APP_ID, APP_VERSION, DISPLAY_NAME, INTERNAL_NAME } from '../shared/app-meta'
 import { eq } from 'drizzle-orm'
@@ -160,6 +160,19 @@ function onStartupFailed(err: unknown): void {
 }
 
 function startup(): void {
+  /**
+   * 既定のメニューバー（File / Edit / View …）を消す。
+   *
+   * 自前のタイトルバーを使っているので、その下に OS のメニューが出ると二重になる。
+   * 既存アプリ（映棚・PixNest・XNest）も揃って消している。
+   *
+   * NOTE: これを消すと Ctrl+C / Ctrl+V などの標準ショートカットも効かなくなる。
+   *       入力欄を持つなら、必要な項目だけのメニューを作って割り当てること
+   *       （CommandDeck が「編集／表示」だけの最小メニューを作っている）。
+   *       この雛形は入力欄が少ないので、まず消す方を既定にしている。
+   */
+  Menu.setApplicationMenu(null)
+
   store = createDb()
   settings = new SettingsStore(store.db)
   backup = new BackupService(store.sqlite, store.file, settings)

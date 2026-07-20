@@ -192,6 +192,38 @@ input[type='color'] {
   padding-bottom: 48px;
 }
 
+/* ── 描画に失敗したときの画面 ── */
+.crash {
+  padding: 72px 28px 28px;
+  max-width: 640px;
+}
+
+.crash__title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: #f0a020;
+}
+
+.crash__lead {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 0 0 16px;
+}
+
+.crash__detail {
+  margin: 0 0 20px;
+  padding: 12px;
+  background: #1e1e24;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 30vh;
+  overflow: auto;
+}
+
 /* ── 版表記（タイトルバー内） ── */
 .version {
   display: flex;

@@ -26,6 +26,7 @@
     "files": [
       "out/**/*",
       "drizzle/**/*",
+      "assets/**/*",
       "package.json"
     ],
     "extraResources": [
@@ -44,7 +45,8 @@
     ],
     "npmRebuild": false,
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,

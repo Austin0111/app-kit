@@ -172,6 +172,15 @@ secrets.status('openaiApiKey')     // 'unset' | 'ok' | 'plaintext' | 'undecrypta
   `onCancel` では Esc が拾えないので ref 経由でネイティブに張る
 - **子プロセスの出力は UTF-8 とは限らない**。Windows の既定コードページは CP932。
   詳細と対処は `src/main/spawn.ts` の冒頭コメント
+- **アイコンは `build/` と `assets/` の両方に置く**。`build/` は electron-builder が
+  読むもので **asar に入らない**（実行中には読めない）。トレイ等が実行時に読むものは
+  `assets/` に要る。ウィンドウのアイコンは読込失敗すると exe 埋め込みへ自動で
+  フォールバックするため気づきにくく、**フォールバックの無い Tray だけが壊れる**
+  という分かりにくい症状になる（CharaLauncher が踏んだ）。
+  仮のアイコンは `node scripts/make-icon.mjs` で作れる
+- **メニューバーを消している**（`Menu.setApplicationMenu(null)`）。自前タイトルバーと
+  二重になるため。入力欄の編集操作（Ctrl+A 等）は消しても効くことを確認済みだが、
+  独自のショートカットが要るなら最小のメニューを作って割り当てること
 - **タイトルバーに操作要素を足したら `-webkit-app-region: no-drag` を当てる**。
   忘れるとクリックがドラッグ領域に飲まれて反応しなくなる
 - **最大化状態は main から push で受け取る**。最大化はボタン以外でも起きる

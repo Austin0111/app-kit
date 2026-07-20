@@ -24,7 +24,8 @@ export async function launchApp(): Promise<Launched> {
 
   const app = await electron.launch({
     args: ['out/main/index.js'],
-    env: { ...process.env, APP_USER_DATA_DIR: userDataDir, NODE_ENV: 'test' }
+    // APP_E2E=1 で、検証用の仕掛け（描画をわざと壊すボタン等）が出るようになる
+    env: { ...process.env, APP_USER_DATA_DIR: userDataDir, NODE_ENV: 'test', APP_E2E: '1' }
   })
 
   const page = await app.firstWindow()

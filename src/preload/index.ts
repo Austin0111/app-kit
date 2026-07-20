@@ -6,6 +6,12 @@ import type { UpdateInfo } from '../main/update-check'
 
 // 生のチャンネル名は renderer に晒さない（CommandDeck の preload と同じ原則）。
 const api = {
+  /**
+   * 自動テストで動いているか。**検証用の仕掛けを出す判定にだけ使う。**
+   * preload は Node の環境変数を読めるので、同期で渡せる（描画時に await できないため）。
+   * 配布版では常に false になる。
+   */
+  isE2E: process.env.APP_E2E === '1',
   window: {
     minimize: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
     toggleMaximize: (): Promise<boolean> => ipcRenderer.invoke('window:toggleMaximize'),
