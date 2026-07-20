@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import type { Settings } from '../shared/settings'
 import type { LogContext, LogLevel } from '../shared/log-types'
 import type { SecretStatus } from '../main/secrets'
+import type { UpdateInfo } from '../main/update-check'
 
 // 生のチャンネル名は renderer に晒さない（CommandDeck の preload と同じ原則）。
 const api = {
@@ -38,6 +39,14 @@ const api = {
       ipcRenderer.invoke('secrets:set', key, value),
     clear: (key: string): Promise<void> => ipcRenderer.invoke('secrets:clear', key),
     status: (key: string): Promise<SecretStatus> => ipcRenderer.invoke('secrets:status', key)
+  },
+  app: {
+    version: (): Promise<string> => ipcRenderer.invoke('app:version'),
+    /** 更新確認。通知のみで、ダウンロードはブラウザに委ねる */
+    checkUpdate: (): Promise<UpdateInfo> => ipcRenderer.invoke('app:checkUpdate'),
+    openReleases: (url?: string): Promise<void> =>
+      ipcRenderer.invoke('app:openReleases', url),
+    changelog: (): Promise<string | null> => ipcRenderer.invoke('app:changelog')
   },
   log: {
     write: (level: LogLevel, message: string, context?: LogContext): Promise<void> =>

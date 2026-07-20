@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Api } from '../../preload'
 import { useSettings } from './useSettings'
-import { useDialog, useToast, TitleBar } from './ui'
+import { useDialog, useToast, TitleBar, VersionBadge } from './ui'
 import { DISPLAY_NAME } from '../../shared/app-meta'
 
 declare global {
@@ -41,6 +41,20 @@ export default function App(): JSX.Element {
     window.api.backup.list().then(setBackups)
     window.api.secrets.status('demoApiKey').then(setApiKeyStatus)
   }, [])
+
+  async function showChangelog(): Promise<void> {
+    const text = await window.api.app.changelog()
+    if (!text) {
+      toast.error('更新履歴を読めなかった')
+      return
+    }
+    // 既存のダイアログ基盤に乗せる。専用の画面は作らない
+    await dialog.open({
+      title: '更新履歴',
+      message: <pre className="changelog">{text}</pre>,
+      buttons: [{ value: 'close', label: '閉じる', primary: true }]
+    })
+  }
 
   async function setApiKey(): Promise<void> {
     // 入力欄の値は保存後すぐ捨てられる。読み出す口は無いので main 側でしか使えない
@@ -120,7 +134,9 @@ export default function App(): JSX.Element {
       data-theme={settings.theme}
       style={{ '--accent': settings.accentColor } as React.CSSProperties}
     >
-      <TitleBar title={DISPLAY_NAME} />
+      <TitleBar title={DISPLAY_NAME}>
+        <VersionBadge onShowChangelog={showChangelog} />
+      </TitleBar>
       <h1>{DISPLAY_NAME}</h1>
       <p className="muted">
         雛形の動作確認。{loaded ? '設定を読み込み済み' : '設定を読み込み中…'}

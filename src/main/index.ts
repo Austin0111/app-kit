@@ -1,6 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
-import { APP_ID, DISPLAY_NAME, INTERNAL_NAME } from '../shared/app-meta'
+import { APP_ID, APP_VERSION, DISPLAY_NAME, INTERNAL_NAME } from '../shared/app-meta'
 import { eq } from 'drizzle-orm'
 import { createDb } from './db'
 import { notes } from './db/schema'
@@ -10,6 +10,8 @@ import { BackupService, backupDir } from './backup'
 import { registerWindowHandlers, watchMaximizeState } from './window'
 import { log, logFromRenderer, logsDir, setDebugLogging } from './log'
 import { SecretStore, type SecretStatus } from './secrets'
+import { checkForUpdate, openReleasePage } from './update-check'
+import { readFileSync } from 'fs'
 import type { Settings } from '../shared/settings'
 import type { LogContext, LogLevel } from '../shared/log-types'
 
@@ -128,7 +130,7 @@ function startup(): void {
     })
   }
   log.info('起動した', {
-    バージョン: app.getVersion(),
+    バージョン: APP_VERSION,
     Electron: process.versions.electron,
     保存先: app.getPath('userData')
   })
@@ -151,6 +153,27 @@ function startup(): void {
   ipcMain.handle('secrets:set', (_e, key: string, value: string) => secrets.set(key, value))
   ipcMain.handle('secrets:clear', (_e, key: string) => secrets.clear(key))
   ipcMain.handle('secrets:status', (_e, key: string): SecretStatus => secrets.status(key))
+
+  // ── 版と更新 ──
+  ipcMain.handle('app:version', () => APP_VERSION)
+  ipcMain.handle('app:checkUpdate', () => checkForUpdate())
+  ipcMain.handle('app:openReleases', (_e, url?: string) => openReleasePage(url))
+
+  /** 変更履歴を読む。配布時は resources 配下に置かれる（package.json の extraResources） */
+  ipcMain.handle('app:changelog', () => {
+    const candidates = app.isPackaged
+      ? [join(process.resourcesPath, 'CHANGELOG.md')]
+      : [join(__dirname, '..', '..', 'CHANGELOG.md'), join(app.getAppPath(), 'CHANGELOG.md')]
+    for (const path of candidates) {
+      try {
+        return readFileSync(path, 'utf8')
+      } catch {
+        // 次の候補へ
+      }
+    }
+    log.warn('変更履歴を読めなかった', { 探した場所: candidates })
+    return null
+  })
 
   // ── ログ ──
   ipcMain.handle('log:write', (_e, level: LogLevel, message: string, context?: LogContext) => {

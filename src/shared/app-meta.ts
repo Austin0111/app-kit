@@ -35,3 +35,14 @@ export const APP_ID = 'dev.austin.app-kit'
 
 /** DB ファイル名。表示名ではなく内部識別子から作る。 */
 export const DB_FILENAME = `${INTERNAL_NAME}.db`
+
+declare const __APP_VERSION__: string
+
+/**
+ * アプリの版。**ビルド時に package.json から埋め込まれる**（electron.vite.config.ts）。
+ *
+ * `app.getVersion()` を使ってはいけない。起動のされ方で値が変わり、
+ * `electron out/main/index.js` 形式では **Electron 自身の版を返す**。
+ * 表示にも更新比較にも使う値なので、間違えると永久に「更新なし」になる。
+ */
+export const APP_VERSION = __APP_VERSION__
