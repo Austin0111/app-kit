@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-typecheck.mjs",
+            "timeout": 60,
+            "statusMessage": "型検査中…"
+          }
+        ]
+      }
+    ]
+  }
+}
