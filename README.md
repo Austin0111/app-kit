@@ -64,8 +64,14 @@ npx electron-rebuild -w better-sqlite3
 ```
 npm run dev         開発起動
 npm run typecheck   型検査
+npm run verify      型・名前・ビルド・テストをまとめて確認
+npm run dist        インストーラを作る（dist/ に出る）
 npm run db:generate スキーマ変更後のマイグレーション生成
 ```
+
+> `@electron/rebuild` は electron-builder も内部で使うため「重複」と警告が出るが、
+> **上のセットアップ手順が `electron-rebuild` を直接叩く**ので直接依存のまま残している。
+> 間接依存の実行ファイルに頼るのは脆い。
 
 ## 入っているもの
 
