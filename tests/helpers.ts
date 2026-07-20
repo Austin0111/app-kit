@@ -20,11 +20,11 @@ export type Launched = {
 }
 
 export async function launchApp(): Promise<Launched> {
-  const userDataDir = mkdtempSync(join(tmpdir(), 'app-kit-test-'))
+  const userDataDir = mkdtempSync(join(tmpdir(), 'e2e-test-'))
 
   const app = await electron.launch({
     args: ['out/main/index.js'],
-    env: { ...process.env, APP_KIT_USER_DATA: userDataDir, NODE_ENV: 'test' }
+    env: { ...process.env, APP_USER_DATA_DIR: userDataDir, NODE_ENV: 'test' }
   })
 
   const page = await app.firstWindow()

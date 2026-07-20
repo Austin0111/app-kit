@@ -1,0 +1,216 @@
+#!/usr/bin/env node
+/**
+ * この雛形から新しいアプリを作る。
+ *
+ *   node scripts/create-app.mjs <内部識別子> [--display "表示名"] [--dir <作成先>]
+ *
+ * 例:
+ *   node scripts/create-app.mjs manga-shelf --display "漫画棚"
+ *   → D:\ClaudeCode\manga-shelf が出来る
+ *
+ * やること:
+ *   1. 雛形を複製（node_modules / out / dist / test-results / .git は除く）
+ *   2. 名前の差し替え（app-meta.ts / package.json / update-check.ts / README ほか）
+ *   3. CHANGELOG を初期化、版を 0.1.0 へ戻す
+ *   4. git init して最初のコミット
+ *
+ * **依存の導入はしない。** 作成後に案内する 3 手順を手で実行すること
+ * （better-sqlite3 は素の npm install だとソースビルドに回って失敗するため）。
+ */
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'fs'
+import { dirname, join, resolve } from 'path'
+import { fileURLToPath } from 'url'
+import { execFileSync } from 'child_process'
+
+const TEMPLATE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+
+// 複製しないもの。生成物と、雛形固有の履歴
+const SKIP = new Set(['node_modules', 'out', 'dist', 'test-results', '.git'])
+
+// ---------------------------------------------------------------- 引数
+
+const argv = process.argv.slice(2)
+if (argv.length === 0 || argv.includes('--help') || argv.includes('-h')) {
+  console.log(`使い方:
+  node scripts/create-app.mjs <内部識別子> [--display "表示名"] [--dir <作成先>]
+
+  <内部識別子>  英小文字・数字・ハイフンのみ。**後から変えられない**
+                （userData フォルダ名・DB 名・バックアップ名に使う）
+  --display     表示名。省略時は内部識別子と同じ。**後からいつでも変えられる**
+  --dir         作成先。省略時は雛形と同じ階層に <内部識別子> で作る`)
+  process.exit(0)
+}
+
+const internalName = argv[0]
+const displayName = readOption('--display') ?? internalName
+const targetDir = resolve(readOption('--dir') ?? join(TEMPLATE_ROOT, '..', internalName))
+
+function readOption(name) {
+  const i = argv.indexOf(name)
+  return i >= 0 && argv[i + 1] ? argv[i + 1] : null
+}
+
+// ---------------------------------------------------------------- 検査
+
+// 内部識別子はフォルダ名・ファイル名になるので、素性の良い文字だけに限る
+if (!/^[a-z0-9][a-z0-9-]*$/.test(internalName)) {
+  fail(`内部識別子は英小文字・数字・ハイフンだけにしてほしい: "${internalName}"`)
+}
+if (existsSync(targetDir)) {
+  fail(`作成先が既にある: ${targetDir}`)
+}
+
+function fail(message) {
+  console.error(`\n中止した: ${message}\n`)
+  process.exit(1)
+}
+
+// ---------------------------------------------------------------- 複製
+
+console.log(`雛形を複製する`)
+console.log(`  元: ${TEMPLATE_ROOT}`)
+console.log(`  先: ${targetDir}`)
+
+mkdirSync(targetDir, { recursive: true })
+cpSync(TEMPLATE_ROOT, targetDir, {
+  recursive: true,
+  filter: (src) => {
+    const rel = src.slice(TEMPLATE_ROOT.length + 1)
+    if (!rel) return true
+    return !SKIP.has(rel.split(/[\\/]/)[0])
+  }
+})
+
+// ---------------------------------------------------------------- 差し替え
+
+const appId = `dev.austin.${internalName}`
+
+/** ファイルの中身を置換する。対象が無い場合は黙って飛ばさず知らせる */
+function replaceIn(relPath, replacements) {
+  const path = join(targetDir, relPath)
+  if (!existsSync(path)) {
+    console.warn(`  ! 見つからない: ${relPath}`)
+    return
+  }
+  let text = readFileSync(path, 'utf8')
+  let changed = 0
+  for (const [from, to] of replacements) {
+    const before = text
+    text = text.split(from).join(to)
+    if (text !== before) changed++
+  }
+  writeFileSync(path, text)
+  console.log(`  ${relPath}${changed} 箇所`)
+}
+
+console.log('\n名前を差し替える')
+
+replaceIn('src/shared/app-meta.ts', [
+  [`export const INTERNAL_NAME = 'app-kit'`, `export const INTERNAL_NAME = '${internalName}'`],
+  [`export const DISPLAY_NAME = 'app-kit'`, `export const DISPLAY_NAME = '${displayName}'`],
+  [`export const APP_ID = 'dev.austin.app-kit'`, `export const APP_ID = '${appId}'`]
+])
+
+replaceIn('src/main/update-check.ts', [[`const REPO = 'app-kit'`, `const REPO = '${internalName}'`]])
+
+replaceIn('src/renderer/index.html', [['<title>app-kit</title>', `<title>${displayName}</title>`]])
+
+// package.json は構造を壊さないよう JSON として扱う
+{
+  const path = join(targetDir, 'package.json')
+  const pkg = JSON.parse(readFileSync(path, 'utf8'))
+  pkg.name = internalName
+  pkg.version = '0.1.0'
+  pkg.description = `${displayName}`
+  pkg.build.appId = appId
+  pkg.build.productName = displayName
+  writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n')
+  console.log(`  package.json … name / version / description / appId / productName`)
+}
+
+// ---------------------------------------------------------------- 初期化
+
+const today = new Date().toISOString().slice(0, 10)
+writeFileSync(
+  join(targetDir, 'CHANGELOG.md'),
+  `# 更新履歴
+
+バージョンは \`package.json\` の \`version\` と一致させる。
+機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
+
+## [0.1.0] - ${today}
+
+- ${displayName} を作り始めた（雛形 app-kit から生成）
+`
+)
+console.log('  CHANGELOG.md … 初期化')
+
+// 雛形の README は「雛形の説明」なので、アプリ用に置き換える
+writeFileSync(
+  join(targetDir, 'README.md'),
+  `# ${displayName}
+
+雛形 [app-kit](https://github.com/Austin0111/app-kit) から作成。
+
+## セットアップ
+
+\`\`\`
+npm install --ignore-scripts
+node node_modules/electron/install.js
+npx electron-rebuild -w better-sqlite3
+\`\`\`
+
+**この 3 手順で入れること。** 素の \`npm install\` だと better-sqlite3 が
+ソースビルドに回り、この環境では node-gyp が Visual Studio を認識できずに失敗する。
+
+\`\`\`
+npm run dev       開発起動
+npm run verify    型・名前・ビルド・テストをまとめて確認
+\`\`\`
+
+雛形が備えるもの（設定KV / バックアップ / ログ / 秘密情報 / UI部品 / 更新通知）の
+詳しい説明は、雛形側の README を参照。
+`
+)
+console.log('  README.md … アプリ用に置き換え')
+
+// ---------------------------------------------------------------- git
+
+try {
+  execFileSync('git', ['init', '-q'], { cwd: targetDir })
+  execFileSync('git', ['add', '-A'], { cwd: targetDir })
+  execFileSync('git', ['commit', '-q', '-m', `${displayName} を作り始めた（雛形 app-kit から生成）`], {
+    cwd: targetDir
+  })
+  console.log('  git … 初期化して最初のコミットを作った')
+} catch (err) {
+  console.warn(`  ! git の初期化に失敗した（手で行ってほしい）: ${String(err).slice(0, 120)}`)
+}
+
+// ---------------------------------------------------------------- 確認
+
+const meta = readFileSync(join(targetDir, 'src/shared/app-meta.ts'), 'utf8')
+const leftover = meta.includes(`'app-kit'`)
+if (leftover) {
+  console.warn('\n! app-meta.ts に app-kit が残っている。手で確認してほしい')
+}
+
+console.log(`
+できた: ${targetDir}
+
+  内部識別子 : ${internalName}   （変えない。userData/DB/バックアップ名に使う）
+  表示名     : ${displayName}   （いつでも変えられる）
+  アプリID   : ${appId}
+
+次にやること:
+
+  cd ${targetDir}
+  npm install --ignore-scripts
+  node node_modules/electron/install.js
+  npx electron-rebuild -w better-sqlite3
+  npm run verify
+  npm run dev
+
+雛形に付いてくる動作確認用のもの（notes テーブル、APIキーの設定欄、画面の各節）は
+そのアプリに要らなければ消してよい。
+`)

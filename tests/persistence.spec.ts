@@ -12,8 +12,8 @@ import { join } from 'path'
  * ここを自動で見張れる意味は大きい。
  */
 test('設定は再起動しても残る', async () => {
-  const userDataDir = mkdtempSync(join(tmpdir(), 'app-kit-persist-'))
-  const env = { ...process.env, APP_KIT_USER_DATA: userDataDir }
+  const userDataDir = mkdtempSync(join(tmpdir(), 'e2e-persist-'))
+  const env = { ...process.env, APP_USER_DATA_DIR: userDataDir }
 
   // ── 1 回目: テーマを切り替える ──
   const first = await electron.launch({ args: ['out/main/index.js'], env })

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, screen, shell } from 'electron'
 import { join } from 'path'
 import { APP_ID, APP_VERSION, DISPLAY_NAME, INTERNAL_NAME } from '../shared/app-meta'
 import { eq } from 'drizzle-orm'
@@ -30,18 +30,65 @@ installCrashLog()
 app.setName(INTERNAL_NAME)
 app.setPath(
   'userData',
-  process.env.APP_KIT_USER_DATA ?? join(app.getPath('appData'), INTERNAL_NAME)
+  process.env.APP_USER_DATA_DIR ?? join(app.getPath('appData'), INTERNAL_NAME)
 )
 // タスクバーのグループ化・通知の識別子。インストーラ側の設定と一致させること。
 app.setAppUserModelId(APP_ID)
+
+/**
+ * 多重起動を防ぐ。
+ *
+ * 同じ userData を 2 つのプロセスが掴むと、SQLite だけでなく
+ * **Chromium のキャッシュ／quota データベースがロック競合を起こす**。
+ * XNest ではこれで画面がスプラッシュのまま止まる実害が出た。
+ * 2 つ目の起動は諦めさせ、代わりに既にある窓を前へ出す。
+ *
+ * ※テストは userData を分けているので、この制限に引っかからない。
+ */
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    const win = BrowserWindow.getAllWindows()[0]
+    if (!win) return
+    if (win.isMinimized()) win.restore()
+    win.focus()
+  })
+}
 
 let store: ReturnType<typeof createDb>
 let settings: SettingsStore
 let backup: BackupService
 let secrets: SecretStore
 
+/**
+ * 保存した位置が今の画面に収まっているかを見る。
+ *
+ * モニタを外した・解像度を変えた後だと、記憶した座標が**画面の外**になり、
+ * 窓が見えないまま起動して「起動しない」と誤解される。
+ * どの画面にも重なっていなければ位置を捨て、OS に任せて中央へ出す。
+ */
+function isOnScreen(bounds: { x: number; y: number; width: number; height: number }): boolean {
+  return screen.getAllDisplays().some((d) => {
+    const a = d.workArea
+    // 端が少しでも重なっていればよい（完全に含まれる必要はない）
+    return (
+      bounds.x < a.x + a.width &&
+      bounds.x + bounds.width > a.x &&
+      bounds.y < a.y + a.height &&
+      bounds.y + bounds.height > a.y
+    )
+  })
+}
+
 function createWindow(): void {
-  const bounds = settings.get('windowBounds')
+  const saved = settings.get('windowBounds')
+  // 画面外なら位置だけ捨てる（大きさは活かす）
+  const usable = saved && isOnScreen(saved)
+  if (saved && !usable) {
+    log.info('保存したウィンドウ位置が画面外だったので既定位置で開く', { 保存値: saved })
+  }
+  const bounds = usable ? saved : saved ? { ...saved, x: undefined, y: undefined } : null
 
   const win = new BrowserWindow({
     width: bounds?.width ?? 1000,
