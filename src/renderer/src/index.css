@@ -43,6 +43,12 @@ section {
   font-size: 13px;
 }
 
+/* 入れ直しが要る等、利用者の対応が必要なことを示す */
+.warn {
+  color: #f0a020;
+  font-size: 13px;
+}
+
 .row {
   display: flex;
   gap: 8px;

@@ -9,6 +9,7 @@ import { SettingsStore } from './settings'
 import { BackupService, backupDir } from './backup'
 import { registerWindowHandlers, watchMaximizeState } from './window'
 import { log, logFromRenderer, logsDir, setDebugLogging } from './log'
+import { SecretStore, type SecretStatus } from './secrets'
 import type { Settings } from '../shared/settings'
 import type { LogContext, LogLevel } from '../shared/log-types'
 
@@ -29,6 +30,7 @@ app.setAppUserModelId(APP_ID)
 let store: ReturnType<typeof createDb>
 let settings: SettingsStore
 let backup: BackupService
+let secrets: SecretStore
 
 function createWindow(): void {
   const bounds = settings.get('windowBounds')
@@ -83,8 +85,19 @@ app.whenReady().then(() => {
   store = createDb()
   settings = new SettingsStore(store.db)
   backup = new BackupService(store.sqlite, store.file, settings)
+  secrets = new SecretStore(store.db)
 
   setDebugLogging(settings.get('debugLogging'))
+
+  // 別PCへ復元した等で復号できなくなった秘密情報を知らせる。
+  // 黙って失敗すると「なぜか繋がらない」と悩ませることになる。
+  const broken = secrets.listUndecryptable()
+  if (broken.length > 0) {
+    log.warn('保存済みの秘密情報を復号できなかった。入れ直しが要る', {
+      対象: broken,
+      理由: '別のPCやユーザーアカウントへ復元された可能性がある'
+    })
+  }
   log.info('起動した', {
     バージョン: app.getVersion(),
     Electron: process.versions.electron,
@@ -102,6 +115,13 @@ app.whenReady().then(() => {
   ipcMain.handle('settings:setMany', (_e, patch: Partial<Settings>) => {
     settings.setMany(patch)
   })
+
+  // ── 秘密情報 ──
+  // **値を返す口は用意しない。** 平文が IPC を渡ってレンダラーのメモリに残るのを避けるため。
+  // 秘密を使う処理は main 側に置き、レンダラーからは「設定した/消した/状態」だけを扱う。
+  ipcMain.handle('secrets:set', (_e, key: string, value: string) => secrets.set(key, value))
+  ipcMain.handle('secrets:clear', (_e, key: string) => secrets.clear(key))
+  ipcMain.handle('secrets:status', (_e, key: string): SecretStatus => secrets.status(key))
 
   // ── ログ ──
   ipcMain.handle('log:write', (_e, level: LogLevel, message: string, context?: LogContext) => {

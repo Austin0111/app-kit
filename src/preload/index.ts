@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import type { Settings } from '../shared/settings'
 import type { LogContext, LogLevel } from '../shared/log-types'
+import type { SecretStatus } from '../main/secrets'
 
 // 生のチャンネル名は renderer に晒さない（CommandDeck の preload と同じ原則）。
 const api = {
@@ -26,6 +27,17 @@ const api = {
       ipcRenderer.on('settings:changed', listener)
       return () => ipcRenderer.off('settings:changed', listener)
     }
+  },
+  /**
+   * 秘密情報（APIキー等）。
+   * **値を読み出す口は敢えて無い。** 平文をレンダラーへ持ち込まないため。
+   * 秘密を使う処理は main 側に置くこと。
+   */
+  secrets: {
+    set: (key: string, value: string): Promise<void> =>
+      ipcRenderer.invoke('secrets:set', key, value),
+    clear: (key: string): Promise<void> => ipcRenderer.invoke('secrets:clear', key),
+    status: (key: string): Promise<SecretStatus> => ipcRenderer.invoke('secrets:status', key)
   },
   log: {
     write: (level: LogLevel, message: string, context?: LogContext): Promise<void> =>

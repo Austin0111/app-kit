@@ -13,6 +13,14 @@ declare global {
 type Note = { id: number; body: string; createdAt: string; done: boolean }
 type BackupEntry = { path: string; name: string; size: number; createdAt: string }
 
+/** 秘密情報の状態を、素人にも分かる言葉にする。 */
+const SECRET_LABEL: Record<string, string> = {
+  unset: '未設定',
+  ok: '設定済み',
+  plaintext: '設定済み（この環境では暗号化できず平文で保存）',
+  undecryptable: '復号できない。入れ直しが要る（別PCへ復元した等）'
+}
+
 function formatSize(bytes: number): string {
   return bytes < 1024 * 1024
     ? `${Math.round(bytes / 1024)} KB`
@@ -26,11 +34,35 @@ export default function App(): JSX.Element {
   const [notes, setNotes] = useState<Note[]>([])
   const [draft, setDraft] = useState('')
   const [backups, setBackups] = useState<BackupEntry[]>([])
+  const [apiKeyStatus, setApiKeyStatus] = useState<string>('unset')
 
   useEffect(() => {
     window.api.notes.list().then(setNotes)
     window.api.backup.list().then(setBackups)
+    window.api.secrets.status('demoApiKey').then(setApiKeyStatus)
   }, [])
+
+  async function setApiKey(): Promise<void> {
+    // 入力欄の値は保存後すぐ捨てられる。読み出す口は無いので main 側でしか使えない
+    const key = await dialog.prompt('APIキーを設定する', {
+      placeholder: 'sk-...',
+      message: 'OSの仕組みで暗号化して保存する。別のPCでは復号できない点に注意。'
+    })
+    if (key === null) return
+    if (!key.trim()) {
+      toast.error('空では保存できぬ')
+      return
+    }
+    await window.api.secrets.set('demoApiKey', key.trim())
+    setApiKeyStatus(await window.api.secrets.status('demoApiKey'))
+    toast.success('APIキーを保存した')
+  }
+
+  async function clearApiKey(): Promise<void> {
+    await window.api.secrets.clear('demoApiKey')
+    setApiKeyStatus(await window.api.secrets.status('demoApiKey'))
+    toast.success('APIキーを消した')
+  }
 
   async function createBackup(): Promise<void> {
     try {
@@ -113,6 +145,23 @@ export default function App(): JSX.Element {
         <p className="muted">
           いずれも即座に保存される。<strong>ウィンドウの位置・サイズも記憶する</strong>ので、
           動かして閉じて開き直すと同じ場所に出る。
+        </p>
+      </section>
+
+      <section>
+        <h2>秘密情報（APIキー等）</h2>
+        <p className={apiKeyStatus === 'undecryptable' ? 'warn' : 'muted'}>
+          状態: {SECRET_LABEL[apiKeyStatus] ?? apiKeyStatus}
+        </p>
+        <div className="row">
+          <button onClick={setApiKey}>
+            {apiKeyStatus === 'unset' ? '設定する' : '入れ直す'}
+          </button>
+          {apiKeyStatus !== 'unset' && <button onClick={clearApiKey}>消す</button>}
+        </div>
+        <p className="muted">
+          OSの仕組み（Windows は DPAPI）で暗号化して保存する。
+          <strong>値を読み出す口は用意していない</strong>ので、使う処理は main 側に置く。
         </p>
       </section>
 
