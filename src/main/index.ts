@@ -8,6 +8,7 @@ import { installCrashLog } from './crash-log'
 import { SettingsStore } from './settings'
 import { BackupService, backupDir } from './backup'
 import { registerWindowHandlers, watchMaximizeState } from './window'
+import { safeSend } from './ipc-safe'
 import { log, logFromRenderer, logsDir, setDebugLogging } from './log'
 import { SecretStore, type SecretStatus } from './secrets'
 import { checkForUpdate, openReleasePage } from './update-check'
@@ -274,6 +275,20 @@ function startup(): void {
   ipcMain.handle('notes:remove', (_e, id: number) => {
     store.db.delete(notes).where(eq(notes.id, id)).run()
   })
+
+  /**
+   * E2E検証専用: `safeSend()` が破棄済みウィンドウへの送信を安全に無視することを
+   * 確かめる（tests/ipc-safe.spec.ts）。配布版では登録しない。
+   */
+  if (process.env.APP_E2E === '1') {
+    ipcMain.handle('e2e:safeSendOnDestroyedWindow', () => {
+      const win = new BrowserWindow({ show: false })
+      win.destroy()
+      // 例外を投げずに戻ってくれば安全に無視できている
+      safeSend(win, 'noop')
+      return true
+    })
+  }
 
   createWindow()
 

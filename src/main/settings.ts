@@ -1,5 +1,6 @@
 import { BrowserWindow } from 'electron'
 import { settings as settingsTable } from './db/schema'
+import { safeSend } from './ipc-safe'
 import {
   defaultSettings,
   SETTINGS_KEYS,
@@ -96,8 +97,7 @@ export class SettingsStore {
   /** 全ウィンドウへ変更を通知する（複数窓で設定がズレないように）。 */
   private broadcast(patch: Partial<Settings>): void {
     for (const win of BrowserWindow.getAllWindows()) {
-      if (win.isDestroyed()) continue
-      win.webContents.send(SETTINGS_CHANGED_CHANNEL, patch)
+      safeSend(win, SETTINGS_CHANGED_CHANNEL, patch)
     }
   }
 }

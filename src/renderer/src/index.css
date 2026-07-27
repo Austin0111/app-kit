@@ -72,6 +72,26 @@ button {
   cursor: pointer;
 }
 
+/**
+ * オン/オフの状態を持つボタン（表示切替・フィルタ等）用。
+ * 通常のボタンは常時アクセント色で塗りつぶしているため、そのままでは
+ * 「押した状態」を表現できない。既定は控えめな枠線のみにし、
+ * .is-active で初めてアクセント色を塗って「今オンである」ことを示す。
+ */
+.toggle {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--fg);
+}
+.toggle:hover {
+  border-color: var(--accent);
+}
+.toggle.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 ul {
   list-style: none;
   padding: 0;

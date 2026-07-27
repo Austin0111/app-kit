@@ -1,4 +1,5 @@
 import { BrowserWindow, ipcMain } from 'electron'
+import { safeSend } from './ipc-safe'
 
 /**
  * カスタムタイトルバーのための窓制御。
@@ -52,7 +53,7 @@ export function registerWindowHandlers(): void {
 export function watchMaximizeState(win: BrowserWindow): void {
   const send = (): void => {
     if (win.isDestroyed()) return
-    win.webContents.send(WINDOW_CHANNELS.maximizedChanged, win.isMaximized())
+    safeSend(win, WINDOW_CHANNELS.maximizedChanged, win.isMaximized())
   }
   win.on('maximize', send)
   win.on('unmaximize', send)

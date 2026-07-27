@@ -12,6 +12,14 @@ const api = {
    * 配布版では常に false になる。
    */
   isE2E: process.env.APP_E2E === '1',
+  /**
+   * E2E検証専用のフック（`tests/ipc-safe.spec.ts`）。main側のハンドラは
+   * APP_E2E=1 の時しか登録されないため、配布版で呼んでも失敗するだけで無害。
+   */
+  e2e: {
+    safeSendOnDestroyedWindow: (): Promise<boolean> =>
+      ipcRenderer.invoke('e2e:safeSendOnDestroyedWindow')
+  },
   window: {
     minimize: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
     toggleMaximize: (): Promise<boolean> => ipcRenderer.invoke('window:toggleMaximize'),
