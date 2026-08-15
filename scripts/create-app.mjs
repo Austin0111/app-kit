@@ -17,7 +17,15 @@
  * **依存の導入はしない。** 作成後に案内する 3 手順を手で実行すること
  * （better-sqlite3 は素の npm install だとソースビルドに回って失敗するため）。
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'fs'
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+  rmSync
+} from 'fs'
 import { dirname, join, resolve } from 'path'
 import { fileURLToPath } from 'url'
 import { execFileSync } from 'child_process'
@@ -189,10 +197,47 @@ try {
 
 // ---------------------------------------------------------------- 確認
 
-const meta = readFileSync(join(targetDir, 'src/shared/app-meta.ts'), 'utf8')
-const leftover = meta.includes(`'app-kit'`)
-if (leftover) {
-  console.warn('\n! app-meta.ts に app-kit が残っている。手で確認してほしい')
+/**
+ * 雛形の名前が残っていないかを、src と tests の**全体**に対して見る。
+ *
+ * 【なぜ app-meta.ts だけでは足りなかったか】
+ *   以前はここが app-meta.ts しか見ておらず、`tests/packaged.spec.ts` に
+ *   直書きされていた `app-kit.exe` を取りこぼしていた。
+ *   その結果、**雛形の中では通るが、作ったアプリでは永久に飛ばされる検査**が
+ *   出来上がっていた（ゲームデスクで発覚するまで誰も気づかなかった）。
+ *
+ *   名前を差し替える箇所が増えるたびに同じ取りこぼしが起こり得るので、
+ *   一箇所ずつ確認するのをやめ、**残骸そのものを探す**形にした。
+ */
+const leftovers = []
+for (const dir of ['src', 'tests']) {
+  for (const file of walk(join(targetDir, dir))) {
+    if (!/\.(ts|tsx|html|css)$/.test(file)) continue
+    if (readFileSync(file, 'utf8').includes('app-kit')) {
+      leftovers.push(file.slice(targetDir.length + 1).replace(/\\/g, '/'))
+    }
+  }
+}
+if (leftovers.length > 0) {
+  console.warn(`\n! 雛形の名前 "app-kit" が残っている。手で確認してほしい:`)
+  for (const file of leftovers) console.warn(`    ${file}`)
+}
+
+/** フォルダを再帰的に辿ってファイルのパスを返す */
+function walk(dir) {
+  const out = []
+  let entries = []
+  try {
+    entries = readdirSync(dir, { withFileTypes: true })
+  } catch {
+    return out
+  }
+  for (const entry of entries) {
+    const full = join(dir, entry.name)
+    if (entry.isDirectory()) out.push(...walk(full))
+    else out.push(full)
+  }
+  return out
 }
 
 console.log(`
