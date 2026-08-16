@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { _electron as electron } from '@playwright/test'
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'fs'
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 
@@ -45,13 +45,28 @@ const EXE = join('dist', 'win-unpacked', `${PRODUCT_NAME}.exe`)
  * dist が最新かどうかは、配布の直前に人が見る話。
  */
 function distVersion(): string {
+  // publish 設定がある構成では latest.yml が出る
   try {
     const yml = readFileSync(join('dist', 'latest.yml'), 'utf8')
     const found = yml.match(/^version:\s*(.+)$/m)
     if (found?.[1]) return found[1].trim()
   } catch {
-    // 生成されない構成もある。その時は現在の版で見る
+    // 次の手を試す
   }
+
+  // 無い構成もあるので、インストーラのファイル名（"<表示名> Setup <版>.exe"）から拾う。
+  // **この段は消さないこと。** 雛形自身は latest.yml が出るので上で足りてしまうが、
+  // publish 設定を持たないアプリではここだけが頼りになる（ゲームデスクがそうだった）
+  try {
+    for (const name of readdirSync('dist')) {
+      const found = name.match(/ Setup (\d+\.\d+\.\d+[^ ]*)\.exe$/)
+      if (found?.[1]) return found[1]
+    }
+  } catch {
+    // 次の手を試す
+  }
+
+  // どちらも読めなければ現在の版で見る（dist が最新である前提になる）
   return JSON.parse(readFileSync('package.json', 'utf8')).version
 }
 
