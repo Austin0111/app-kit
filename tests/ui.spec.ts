@@ -84,7 +84,9 @@ test.describe('UI 部品', () => {
     await page.setViewportSize({ width: 640, height: 620 })
     await page.waitForTimeout(200)
 
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+    await page.locator('.app').evaluate((app) => {
+      app.scrollTop = app.scrollHeight
+    })
     await page.waitForTimeout(200)
 
     const overlap = await page.evaluate(() => {

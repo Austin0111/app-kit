@@ -7,14 +7,36 @@
   --accent: #7c3aed;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
 body {
   margin: 0;
+  overflow: hidden;
   background: var(--bg);
   color: var(--fg);
   font-family: system-ui, "Segoe UI", sans-serif;
 }
 
+.app-shell {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+  background: var(--bg);
+  color: var(--fg);
+}
+
 .app {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.app__content {
   padding: 24px 28px;
   max-width: 720px;
 }
@@ -132,14 +154,14 @@ input[type='color'] {
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 12px;
+  z-index: 30;
 }
 
 /* ── カスタムタイトルバー ── */
 .titlebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
   height: 34px;
   display: flex;
   align-items: center;
@@ -170,6 +192,7 @@ input[type='color'] {
 .titlebar__slot {
   flex: 0 0 auto;
   min-width: 0;
+  -webkit-app-region: no-drag;
 }
 
 .titlebar__buttons {
@@ -179,11 +202,9 @@ input[type='color'] {
 }
 
 /* ドラッグ領域の中の操作要素には no-drag が必須。
-   付け忘れるとクリックがドラッグに飲まれて反応しなくなる。
-   ただし**入れ物ごと no-drag にしないこと。** その矩形がまるごと
-   ドラッグ領域から引かれ、バーの広い範囲が死ぬ。当てるのは操作要素だけ。 */
-.titlebar__button,
-.titlebar__slot button {
+   スロットは中身の幅にしか広がらないので、箱ごと no-drag にして
+   button 以外のリンク・入力欄・独自操作要素もクリック可能にする。 */
+.titlebar__button {
   -webkit-app-region: no-drag;
 }
 
@@ -210,15 +231,10 @@ input[type='color'] {
   color: #fff;
 }
 
-/* タイトルバーの分だけ本文を下げる */
-.app {
-  padding-top: 58px;
-}
-
 /* ステータスバーは position:fixed なので、その分だけ下に余白を確保する。
    これが無いと最後の要素がバーの下に潜り込み、スクロールしても読めなくなる
    （狭い幅のスクリーンショットで実際に見つかった）。 */
-.app:has(.statusbar) {
+.app-shell:has(.statusbar) .app__content {
   padding-bottom: 48px;
 }
 
@@ -403,20 +419,19 @@ input[type='color'] {
 
 /* テーマはトークンの差し替えだけで切り替える（Oto棚の色辞書方式と同じ考え方）。
    個々のスタイル側には手を入れない。 */
-.app[data-theme='light'] {
+.app-shell[data-theme='light'] {
   --bg: #f7f7f8;
   --fg: #1a1a1e;
   --muted: #6b6b73;
   --line: #dcdce2;
 }
 
-.app[data-theme='light'] {
+.app-shell[data-theme='light'] {
   background: var(--bg);
   color: var(--fg);
-  min-height: 100vh;
 }
 
-.app[data-theme='light'] input {
+.app-shell[data-theme='light'] input {
   background: #fff;
   color: inherit;
 }
@@ -424,30 +439,30 @@ input[type='color'] {
 /* ライト時はダイアログ／トーストも合わせる。
    :has() で「ライトのアプリを含むページ」を判定する。<dialog> は
    トップレイヤーへ出て .app の外側に描画されるため、子孫セレクタでは届かない。 */
-body:has(.app[data-theme='light']) .dialog__panel,
-body:has(.app[data-theme='light']) .toast {
+body:has(.app-shell[data-theme='light']) .dialog__panel,
+body:has(.app-shell[data-theme='light']) .toast {
   background: #fff;
   color: #1a1a1e;
   border-color: #dcdce2;
 }
 
-body:has(.app[data-theme='light']) .dialog__button {
+body:has(.app-shell[data-theme='light']) .dialog__button {
   background: #ebebf0;
   color: #1a1a1e;
 }
 
-body:has(.app[data-theme='light']) .dialog__button.is-primary,
-body:has(.app[data-theme='light']) .dialog__button.is-danger {
+body:has(.app-shell[data-theme='light']) .dialog__button.is-primary,
+body:has(.app-shell[data-theme='light']) .dialog__button.is-danger {
   color: #fff;
 }
 
 /* タイトルバーはトップレイヤーではないが、.app の外にあるので同じく body から当てる */
-body:has(.app[data-theme='light']) .titlebar {
+body:has(.app-shell[data-theme='light']) .titlebar {
   background: #ebebf0;
   border-bottom-color: #dcdce2;
 }
 
-body:has(.app[data-theme='light']) .titlebar__button:hover {
+body:has(.app-shell[data-theme='light']) .titlebar__button:hover {
   background: #dcdce2;
   color: #1a1a1e;
 }

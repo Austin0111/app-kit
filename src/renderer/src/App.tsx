@@ -134,109 +134,115 @@ export default function App(): JSX.Element {
 
   return (
     <div
-      className="app"
+      className="app-shell"
       data-theme={settings.theme}
       style={{ '--accent': settings.accentColor } as React.CSSProperties}
     >
       <TitleBar title={DISPLAY_NAME}>
         <VersionBadge onShowChangelog={showChangelog} />
       </TitleBar>
-      <h1>{DISPLAY_NAME}</h1>
-      <p className="muted">
-        雛形の動作確認。{loaded ? '設定を読み込み済み' : '設定を読み込み中…'}
-      </p>
+      <main className="app">
+        <div className="app__content">
+          <h1>{DISPLAY_NAME}</h1>
+          <p className="muted">
+            雛形の動作確認。{loaded ? '設定を読み込み済み' : '設定を読み込み中…'}
+          </p>
 
-      <section>
-        <h2>設定KV</h2>
-        <div className="row">
-          <button onClick={() => update({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}>
-            テーマ: {settings.theme}
-          </button>
-          <input
-            type="color"
-            value={settings.accentColor}
-            onChange={(e) => update({ accentColor: e.target.value })}
-            title="アクセント色"
-          />
-          <button onClick={() => update({ showStatusBar: !settings.showStatusBar })}>
-            ステータスバー: {settings.showStatusBar ? 'ON' : 'OFF'}
-          </button>
-        </div>
-        <p className="muted">
-          いずれも即座に保存される。<strong>ウィンドウの位置・サイズも記憶する</strong>ので、
-          動かして閉じて開き直すと同じ場所に出る。
-        </p>
-      </section>
+          <section>
+            <h2>設定KV</h2>
+            <div className="row">
+              <button
+                onClick={() => update({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}
+              >
+                テーマ: {settings.theme}
+              </button>
+              <input
+                type="color"
+                value={settings.accentColor}
+                onChange={(e) => update({ accentColor: e.target.value })}
+                title="アクセント色"
+              />
+              <button onClick={() => update({ showStatusBar: !settings.showStatusBar })}>
+                ステータスバー: {settings.showStatusBar ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            <p className="muted">
+              いずれも即座に保存される。<strong>ウィンドウの位置・サイズも記憶する</strong>
+              ので、 動かして閉じて開き直すと同じ場所に出る。
+            </p>
+          </section>
 
-      <section>
-        <h2>秘密情報（APIキー等）</h2>
-        <p className={apiKeyStatus === 'undecryptable' ? 'warn' : 'muted'}>
-          状態: {SECRET_LABEL[apiKeyStatus] ?? apiKeyStatus}
-        </p>
-        <div className="row">
-          <button onClick={setApiKey}>
-            {apiKeyStatus === 'unset' ? '設定する' : '入れ直す'}
-          </button>
-          {apiKeyStatus !== 'unset' && <button onClick={clearApiKey}>消す</button>}
-        </div>
-        <p className="muted">
-          OSの仕組み（Windows は DPAPI）で暗号化して保存する。
-          <strong>値を読み出す口は用意していない</strong>ので、使う処理は main 側に置く。
-        </p>
-      </section>
+          <section>
+            <h2>秘密情報（APIキー等）</h2>
+            <p className={apiKeyStatus === 'undecryptable' ? 'warn' : 'muted'}>
+              状態: {SECRET_LABEL[apiKeyStatus] ?? apiKeyStatus}
+            </p>
+            <div className="row">
+              <button onClick={setApiKey}>
+                {apiKeyStatus === 'unset' ? '設定する' : '入れ直す'}
+              </button>
+              {apiKeyStatus !== 'unset' && <button onClick={clearApiKey}>消す</button>}
+            </div>
+            <p className="muted">
+              OSの仕組み（Windows は DPAPI）で暗号化して保存する。
+              <strong>値を読み出す口は用意していない</strong>ので、使う処理は main 側に置く。
+            </p>
+          </section>
 
-      <section>
-        <h2>notes（{notes.length}件）</h2>
-        <div className="row">
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addNote()}
-            placeholder="何か書いて Enter"
-          />
-          <button onClick={addNote}>追加</button>
-        </div>
-        <ul>
-          {notes.map((n) => (
-            <li key={n.id}>
-              <span>{n.body}</span>
-              <span className="row">
-                <button onClick={() => renameNote(n)}>編集</button>
-                <button onClick={() => removeNote(n)}>×</button>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+          <section>
+            <h2>notes（{notes.length}件）</h2>
+            <div className="row">
+              <input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addNote()}
+                placeholder="何か書いて Enter"
+              />
+              <button onClick={addNote}>追加</button>
+            </div>
+            <ul>
+              {notes.map((n) => (
+                <li key={n.id}>
+                  <span>{n.body}</span>
+                  <span className="row">
+                    <button onClick={() => renameNote(n)}>編集</button>
+                    <button onClick={() => removeNote(n)}>×</button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
 
-      <section>
-        <h2>バックアップ（{backups.length}世代）</h2>
-        <div className="row">
-          <button onClick={createBackup}>今すぐバックアップ</button>
-          <button onClick={() => window.api.backup.openFolder()}>フォルダを開く</button>
-          <button onClick={() => window.api.log.openFolder()}>ログを開く</button>
-          {window.api.isE2E && (
-            <button onClick={() => setBoom(true)}>描画を壊す（確認用）</button>
-          )}
+          <section>
+            <h2>バックアップ（{backups.length}世代）</h2>
+            <div className="row">
+              <button onClick={createBackup}>今すぐバックアップ</button>
+              <button onClick={() => window.api.backup.openFolder()}>フォルダを開く</button>
+              <button onClick={() => window.api.log.openFolder()}>ログを開く</button>
+              {window.api.isE2E && (
+                <button onClick={() => setBoom(true)}>描画を壊す（確認用）</button>
+              )}
+            </div>
+            <p className="muted">
+              {settings.backupIntervalDays > 0
+                ? `起動時に自動チェック（${settings.backupIntervalDays}日間隔・${settings.backupRetention}世代まで保持）`
+                : '自動バックアップは無効'}
+              。復元は再起動して適用される。
+            </p>
+            <ul>
+              {backups.map((b) => (
+                <li key={b.path}>
+                  <span>
+                    {b.name}
+                    <span className="muted"> — {formatSize(b.size)}</span>
+                  </span>
+                  <button onClick={() => restoreBackup(b)}>復元</button>
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
-        <p className="muted">
-          {settings.backupIntervalDays > 0
-            ? `起動時に自動チェック（${settings.backupIntervalDays}日間隔・${settings.backupRetention}世代まで保持）`
-            : '自動バックアップは無効'}
-          。復元は再起動して適用される。
-        </p>
-        <ul>
-          {backups.map((b) => (
-            <li key={b.path}>
-              <span>
-                {b.name}
-                <span className="muted"> — {formatSize(b.size)}</span>
-              </span>
-              <button onClick={() => restoreBackup(b)}>復元</button>
-            </li>
-          ))}
-        </ul>
-      </section>
+      </main>
 
       {settings.showStatusBar && (
         <footer className="statusbar">
