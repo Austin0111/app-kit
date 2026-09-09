@@ -68,8 +68,12 @@ npm run verify      型・名前・ビルド・テストをまとめて確認
 npm run release:verify  verify・配布物作成・配布版起動・版整合を一括確認
 npm run dist        インストーラを作る（dist/ に出る）
 npm run test:packaged 配布版を必須として起動確認（無ければ失敗）
+npm run test:installer NSIS版を一時導入し、起動・DB・削除まで確認（既存導入時は中止）
 npm run db:generate スキーマ変更後のマイグレーション生成
 ```
+
+`test:installer`は現在のWindowsユーザーに同名アプリの登録またはショートカットがある場合、
+既存環境へ干渉しないよう開始前に失敗する。通常は`release:verify`から実行する。
 
 > `@electron/rebuild` は electron-builder も内部で使うため「重複」と警告が出るが、
 > **上のセットアップ手順が `electron-rebuild` を直接叩く**ので直接依存のまま残している。

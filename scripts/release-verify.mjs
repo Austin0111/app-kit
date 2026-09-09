@@ -18,6 +18,7 @@ function run(script) {
 run('verify')
 run('dist')
 run('test:packaged')
+run('test:installer')
 // Playwrightは実行ごとにtest-resultsを初期化する。配布版テストの後に
 // 目視素材を再生成し、release:verify完了時にもスクリーンショットを残す。
 run('test:screenshots')

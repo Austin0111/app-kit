@@ -2,6 +2,22 @@ import { expect, test } from '@playwright/test'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { launchApp } from './helpers'
+import { sql } from 'drizzle-orm'
+import { SQLiteSyncDialect } from 'drizzle-orm/sqlite-core'
+
+test('DrizzleはSQLite識別子内の引用符を二重化してSQL構造から出さない', () => {
+  const dialect = new SQLiteSyncDialect()
+  expect(dialect.escapeName('safe_column')).toBe('"safe_column"')
+  expect(dialect.escapeName('name" UNION SELECT secret FROM secrets --')).toBe(
+    '"name"" UNION SELECT secret FROM secrets --"'
+  )
+  expect(dialect.escapeName('x"; DROP TABLE notes; --')).toBe(
+    '"x""; DROP TABLE notes; --"'
+  )
+  expect(
+    dialect.sqlToQuery(sql`${sql.identifier('name" UNION SELECT secret FROM secrets --')}`).sql
+  ).toBe('"name"" UNION SELECT secret FROM secrets --"')
+})
 
 test('ログ本文・context・開発consoleの全出口で秘密を伏せる', async () => {
   const ctx = await launchApp()
