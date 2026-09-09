@@ -1,6 +1,6 @@
 {
   "name": "app-kit",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "新規デスクトップアプリの雛形（electron-vite + React + TypeScript + better-sqlite3 + Drizzle）",
   "main": "./out/main/index.js",
   "author": "Austin",
@@ -58,18 +58,18 @@
     }
   },
   "dependencies": {
-    "better-sqlite3": "^11.7.0",
+    "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.38.0"
   },
   "devDependencies": {
-    "@electron/rebuild": "^3.7.1",
+    "@electron/rebuild": "^4.2.0",
     "@playwright/test": "^1.61.1",
     "@types/better-sqlite3": "^7.6.12",
     "@types/react": "^18.3.17",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "drizzle-kit": "^0.30.0",
-    "electron": "^33.3.1",
+    "electron": "^44.3.0",
     "electron-builder": "^26.15.3",
     "electron-vite": "^2.3.0",
     "react": "^18.3.1",

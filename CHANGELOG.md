@@ -4,6 +4,17 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.2.8] - 2026-09-09
+
+- Electronを33.4.11から安定版44.3.0へ更新し、Node 24／Chromium 152世代へ移行した
+- better-sqlite3をN-API対応の13.0.3、`@electron/rebuild`を4.2.0へ更新し、
+  Electron 44向けnative module再ビルドとDBの読み書きを実機確認した
+- 配布版テストで内包Electronの版も検査し、package.jsonだけ更新されて古いruntimeが
+  配布される状態を検出できるようにした
+- 新しい外部Web埋め込みは非推奨のBrowserView／webviewではなくWebContentsViewを使う
+  方針と、座標同期・権限・partitionなどの実Electron検証観点をREADMEへ追記した
+- better-sqlite3 13のN-API化に合わせ、雛形と生成先READMEの依存導入理由を現状に揃えた
+
 ## [0.2.7] - 2026-09-09
 
 - 既存DBに未適用マイグレーションがある時だけOnline Backup APIで直前状態を退避し、

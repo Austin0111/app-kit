@@ -16,7 +16,7 @@ node scripts/create-app.mjs manga-shelf --display "漫画棚"
 ```
 
 複製・名前の差し替え・CHANGELOG の初期化・git init まで自動でやる。
-**依存の導入だけは手で行う**（下記の 3 手順。素の `npm install` では失敗するため）。
+**依存の導入だけは手で行う**（下記の3手順でElectron本体とnative moduleを揃える）。
 
 既存アプリを触る話ではない。雛形からの新規作成のためのもの。
 
@@ -47,7 +47,7 @@ node scripts/create-app.mjs manga-shelf --display "漫画棚"
 
 ## スタック
 
-electron-vite / React 18 / TypeScript / better-sqlite3 / Drizzle ORM
+Electron 44 / electron-vite / React 18 / TypeScript / better-sqlite3 / Drizzle ORM
 
 ## セットアップ
 
@@ -57,9 +57,9 @@ node node_modules/electron/install.js
 npx electron-rebuild -w better-sqlite3
 ```
 
-**この 3 手順で入れること。** 素の `npm install` だと better-sqlite3 が
-ソースビルドに回り、この環境（VS18 / Node v24）では node-gyp が Visual Studio を
-認識できずに失敗する。
+**この3手順で入れること。** `--ignore-scripts`で依存導入時の任意スクリプトを止め、
+Electron本体を明示的に取得してからnative moduleを対象Electronへ揃える。
+better-sqlite3 13はN-API prebuildを同梱するが、将来native依存が増えても同じ手順を使う。
 
 ```
 npm run dev         開発起動
@@ -95,6 +95,13 @@ npm run db:generate スキーマ変更後のマイグレーション生成
 | `src/main/spawn.ts` | 外部プロセス起動。**どこからも import していない。要らなければ消してよい** |
 
 `notes` テーブルと画面上の一覧は**動作確認用**。新アプリでは消してよい。
+
+### 外部Webコンテンツを埋め込む場合
+
+新規実装はmainプロセスで管理する`WebContentsView`を使う。`BrowserView`はElectron 29以降で
+非推奨、`<webview>`もElectron公式の推奨外なので、新しい派生アプリへ持ち込まない。
+DOM上の表示領域と座標を同期する必要があるため、導入時はリサイズ・拡大率・スクロール・
+破棄処理に加えて、外部遷移、popup、権限、preload、partitionを実Electronで検証する。
 
 ## マイグレーション
 

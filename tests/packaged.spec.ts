@@ -32,6 +32,9 @@ import { join } from 'path'
  */
 const PRODUCT_NAME = JSON.parse(readFileSync('package.json', 'utf8')).build.productName
 const EXE = join('dist', 'win-unpacked', `${PRODUCT_NAME}.exe`)
+const EXPECTED_ELECTRON = JSON.parse(
+  readFileSync(join('node_modules', 'electron', 'package.json'), 'utf8')
+).version
 
 /**
  * **その配布版を作った時の版**を読む（`package.json` の現在値ではない）。
@@ -92,7 +95,14 @@ test.describe('配布版', () => {
       // （読めなければ起動時に失敗ダイアログを出して終了する）
       await expect(page.getByText('設定を読み込み済み')).toBeVisible()
 
-      // 埋め込まれた版が出ている（Electron 自身の版 33.x が出ていたら失敗）
+      // 配布物へ意図したElectron本体が入ったか。package.jsonだけ更新され、
+      // 古いruntimeでpackagingされた事故を見逃さない。
+      const runtimeVersion = await app.evaluate(() => process.versions.electron)
+      // 通常verifyでは古いdistが残っていてもよい。fresh distを必須にする
+      // test:packaged（REQUIRE_PACKAGED=1）だけが現在の依存版との一致を担う。
+      if (process.env.REQUIRE_PACKAGED === '1') expect(runtimeVersion).toBe(EXPECTED_ELECTRON)
+
+      // アプリ自身の版が出ている（Electron自身の版が出ていたら失敗）
       await expect(page.locator('.version__label')).toHaveText(`v${distVersion()}`)
 
       // CHANGELOG も resources から読めるか（extraResources の確認）

@@ -14,8 +14,8 @@
  *   3. CHANGELOG を初期化、版を 0.1.0 へ戻す
  *   4. git init して最初のコミット
  *
- * **依存の導入はしない。** 作成後に案内する 3 手順を手で実行すること
- * （better-sqlite3 は素の npm install だとソースビルドに回って失敗するため）。
+ * **依存の導入はしない。** 作成後に案内する3手順で、Electron本体と
+ * native moduleを明示的に揃えること。
  */
 import {
   cpSync,
@@ -183,8 +183,8 @@ node node_modules/electron/install.js
 npx electron-rebuild -w better-sqlite3
 \`\`\`
 
-**この 3 手順で入れること。** 素の \`npm install\` だと better-sqlite3 が
-ソースビルドに回り、この環境では node-gyp が Visual Studio を認識できずに失敗する。
+**この3手順で入れること。** 依存導入時の任意スクリプトを止め、Electron本体を
+明示的に取得してからnative moduleを対象Electronへ揃える。
 
 \`\`\`
 npm run dev       開発起動
