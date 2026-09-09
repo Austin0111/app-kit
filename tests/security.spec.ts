@@ -42,6 +42,23 @@ test('BrowserWindowはsandbox化され、外部遷移とpopupを拒否する', a
       BrowserWindow.getAllWindows().some((win) => win.isFocused())
     )
     expect(focused).toBe(false)
+    const placement = await ctx.app.evaluate(({ BrowserWindow, screen }) => {
+      const bounds = BrowserWindow.getAllWindows()[0]?.getBounds()
+      const workArea = [...screen.getAllDisplays()].sort(
+        (a, b) => a.workArea.x - b.workArea.x || a.workArea.y - b.workArea.y
+      )[0]?.workArea
+      return { bounds, workArea }
+    })
+    expect(placement.bounds).toBeDefined()
+    expect(placement.workArea).toBeDefined()
+    expect(placement.bounds!.x).toBeGreaterThanOrEqual(placement.workArea!.x)
+    expect(placement.bounds!.y).toBeGreaterThanOrEqual(placement.workArea!.y)
+    expect(placement.bounds!.x + placement.bounds!.width).toBeLessThanOrEqual(
+      placement.workArea!.x + placement.workArea!.width
+    )
+    expect(placement.bounds!.y + placement.bounds!.height).toBeLessThanOrEqual(
+      placement.workArea!.y + placement.workArea!.height
+    )
 
     const before = ctx.page.url()
     await ctx.page.evaluate(() => {

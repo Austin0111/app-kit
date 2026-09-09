@@ -3,6 +3,7 @@ import type { Settings } from '../shared/settings'
 import type { LogContext, LogLevel } from '../shared/log-types'
 import type { SecretStatus } from '../main/secrets'
 import type { UpdateInfo } from '../main/update-check'
+import { IPC_CHANNELS, IPC_SEND_CHANNELS } from '../shared/ipc-channels'
 
 // 生のチャンネル名は renderer に晒さない（CommandDeck の preload と同じ原則）。
 const api = {
@@ -18,29 +19,34 @@ const api = {
    */
   e2e: {
     safeSendOnDestroyedWindow: (): Promise<boolean> =>
-      ipcRenderer.invoke('e2e:safeSendOnDestroyedWindow')
+      ipcRenderer.invoke(IPC_CHANNELS.e2eSafeSendOnDestroyedWindow),
+    registeredIpcChannels: (): Promise<string[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.e2eRegisteredIpcChannels),
+    simulateElectronFailure: (
+      kind: 'renderer' | 'child' | 'unresponsive' | 'load'
+    ): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.e2eSimulateElectronFailure, kind)
   },
   window: {
-    minimize: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
-    toggleMaximize: (): Promise<boolean> => ipcRenderer.invoke('window:toggleMaximize'),
-    close: (): Promise<void> => ipcRenderer.invoke('window:close'),
-    isMaximized: (): Promise<boolean> => ipcRenderer.invoke('window:isMaximized'),
+    minimize: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.windowMinimize),
+    toggleMaximize: (): Promise<boolean> => ipcRenderer.invoke(IPC_CHANNELS.windowToggleMaximize),
+    close: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.windowClose),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke(IPC_CHANNELS.windowIsMaximized),
     /** ボタン以外での最大化（スナップ・ダブルクリック・Win+↑）も拾うための購読 */
     onMaximizedChange: (cb: (maximized: boolean) => void): (() => void) => {
       const listener = (_e: IpcRendererEvent, v: boolean): void => cb(v)
-      ipcRenderer.on('window:maximizedChanged', listener)
-      return () => ipcRenderer.off('window:maximizedChanged', listener)
+      ipcRenderer.on(IPC_SEND_CHANNELS.windowMaximizedChanged, listener)
+      return () => ipcRenderer.off(IPC_SEND_CHANNELS.windowMaximizedChanged, listener)
     }
   },
   settings: {
-    getAll: (): Promise<Settings> => ipcRenderer.invoke('settings:getAll'),
+    getAll: (): Promise<Settings> => ipcRenderer.invoke(IPC_CHANNELS.settingsGetAll),
     setMany: (patch: Partial<Settings>): Promise<void> =>
-      ipcRenderer.invoke('settings:setMany', patch),
+      ipcRenderer.invoke(IPC_CHANNELS.settingsSetMany, patch),
     /** 他の窓や main 側で設定が変わった時に呼ばれる。戻り値で購読解除する。 */
     onChange: (cb: (patch: Partial<Settings>) => void): (() => void) => {
       const listener = (_e: IpcRendererEvent, patch: Partial<Settings>): void => cb(patch)
-      ipcRenderer.on('settings:changed', listener)
-      return () => ipcRenderer.off('settings:changed', listener)
+      ipcRenderer.on(IPC_SEND_CHANNELS.settingsChanged, listener)
+      return () => ipcRenderer.off(IPC_SEND_CHANNELS.settingsChanged, listener)
     }
   },
   /**
@@ -50,37 +56,37 @@ const api = {
    */
   secrets: {
     set: (key: string, value: string): Promise<void> =>
-      ipcRenderer.invoke('secrets:set', key, value),
-    clear: (key: string): Promise<void> => ipcRenderer.invoke('secrets:clear', key),
-    status: (key: string): Promise<SecretStatus> => ipcRenderer.invoke('secrets:status', key)
+      ipcRenderer.invoke(IPC_CHANNELS.secretsSet, key, value),
+    clear: (key: string): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.secretsClear, key),
+    status: (key: string): Promise<SecretStatus> => ipcRenderer.invoke(IPC_CHANNELS.secretsStatus, key)
   },
   app: {
-    version: (): Promise<string> => ipcRenderer.invoke('app:version'),
+    version: (): Promise<string> => ipcRenderer.invoke(IPC_CHANNELS.appVersion),
     /** 更新確認。通知のみで、ダウンロードはブラウザに委ねる */
-    checkUpdate: (): Promise<UpdateInfo> => ipcRenderer.invoke('app:checkUpdate'),
-    openReleases: (): Promise<void> => ipcRenderer.invoke('app:openReleases'),
-    changelog: (): Promise<string | null> => ipcRenderer.invoke('app:changelog')
+    checkUpdate: (): Promise<UpdateInfo> => ipcRenderer.invoke(IPC_CHANNELS.appCheckUpdate),
+    openReleases: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.appOpenReleases),
+    changelog: (): Promise<string | null> => ipcRenderer.invoke(IPC_CHANNELS.appChangelog)
   },
   log: {
     write: (level: LogLevel, message: string, context?: LogContext): Promise<void> =>
-      ipcRenderer.invoke('log:write', level, message, context),
-    openFolder: (): Promise<string> => ipcRenderer.invoke('log:openFolder')
+      ipcRenderer.invoke(IPC_CHANNELS.logWrite, level, message, context),
+    openFolder: (): Promise<string> => ipcRenderer.invoke(IPC_CHANNELS.logOpenFolder)
   },
   backup: {
-    create: (): Promise<string> => ipcRenderer.invoke('backup:create'),
+    create: (): Promise<string> => ipcRenderer.invoke(IPC_CHANNELS.backupCreate),
     list: (): Promise<
       { path: string; name: string; size: number; createdAt: string }[]
-    > => ipcRenderer.invoke('backup:list'),
-    restore: (path: string): Promise<boolean> => ipcRenderer.invoke('backup:restore', path),
-    openFolder: (): Promise<string> => ipcRenderer.invoke('backup:openFolder')
+    > => ipcRenderer.invoke(IPC_CHANNELS.backupList),
+    restore: (path: string): Promise<boolean> => ipcRenderer.invoke(IPC_CHANNELS.backupRestore, path),
+    openFolder: (): Promise<string> => ipcRenderer.invoke(IPC_CHANNELS.backupOpenFolder)
   },
   notes: {
     list: (): Promise<{ id: number; body: string; createdAt: string; done: boolean }[]> =>
-      ipcRenderer.invoke('notes:list'),
-    add: (body: string): Promise<void> => ipcRenderer.invoke('notes:add', body),
+      ipcRenderer.invoke(IPC_CHANNELS.notesList),
+    add: (body: string): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.notesAdd, body),
     update: (id: number, body: string): Promise<void> =>
-      ipcRenderer.invoke('notes:update', id, body),
-    remove: (id: number): Promise<void> => ipcRenderer.invoke('notes:remove', id)
+      ipcRenderer.invoke(IPC_CHANNELS.notesUpdate, id, body),
+    remove: (id: number): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.notesRemove, id)
   }
 }
 

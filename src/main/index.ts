@@ -13,7 +13,8 @@ import { log, logFromRenderer, logsDir, setDebugLogging } from './log'
 import { SecretStore, type SecretStatus } from './secrets'
 import { checkForUpdate, openReleasePage } from './update-check'
 import { readFileSync } from 'fs'
-import { handleTrusted, lockDownWebContents } from './security'
+import { handleTrusted, lockDownWebContents, registeredIpcChannels } from './security'
+import { IPC_CHANNELS } from '../shared/ipc-channels'
 import {
   requireLogContext,
   requireLogLevel,
@@ -91,18 +92,29 @@ function isOnScreen(bounds: { x: number; y: number; width: number; height: numbe
 
 function createWindow(): void {
   const saved = settings.get('windowBounds')
+  const e2eDisplay =
+    process.env.APP_E2E === '1'
+      ? [...screen.getAllDisplays()].sort(
+          (a, b) => a.workArea.x - b.workArea.x || a.workArea.y - b.workArea.y
+        )[0]
+      : undefined
   // 画面外なら位置だけ捨てる（大きさは活かす）
   const usable = saved && isOnScreen(saved)
   if (saved && !usable) {
     log.info('保存したウィンドウ位置が画面外だったので既定位置で開く', { 保存値: saved })
   }
   const bounds = usable ? saved : saved ? { ...saved, x: undefined, y: undefined } : null
+  const e2eMargin = 16
 
   const win = new BrowserWindow({
-    width: bounds?.width ?? 1000,
-    height: bounds?.height ?? 700,
-    x: bounds?.x,
-    y: bounds?.y,
+    width: e2eDisplay
+      ? Math.min(1000, e2eDisplay.workArea.width - e2eMargin * 2)
+      : (bounds?.width ?? 1000),
+    height: e2eDisplay
+      ? Math.min(700, e2eDisplay.workArea.height - e2eMargin * 2)
+      : (bounds?.height ?? 700),
+    x: e2eDisplay ? e2eDisplay.workArea.x + e2eMargin : bounds?.x,
+    y: e2eDisplay ? e2eDisplay.workArea.y + e2eMargin : bounds?.y,
     show: false,
     // 標準枠を外して自前タイトルバーを使う（src/renderer/src/ui/TitleBar.tsx）
     frame: false,
@@ -213,30 +225,30 @@ function startup(): void {
   registerWindowHandlers()
 
   // ── 設定 KV ──
-  handleTrusted('settings:getAll', () => settings.getAll())
-  handleTrusted('settings:setMany', (_e, patch: unknown) => {
+  handleTrusted(IPC_CHANNELS.settingsGetAll, () => settings.getAll())
+  handleTrusted(IPC_CHANNELS.settingsSetMany, (_e, patch: unknown) => {
     settings.setMany(requireSettingsPatch(patch))
   })
 
   // ── 秘密情報 ──
   // **値を返す口は用意しない。** 平文が IPC を渡ってレンダラーのメモリに残るのを避けるため。
   // 秘密を使う処理は main 側に置き、レンダラーからは「設定した/消した/状態」だけを扱う。
-  handleTrusted('secrets:set', (_e, key: unknown, value: unknown) =>
+  handleTrusted(IPC_CHANNELS.secretsSet, (_e, key: unknown, value: unknown) =>
     secrets.set(requireSecretKey(key), requireString(value, '秘密情報', 65_536))
   )
-  handleTrusted('secrets:clear', (_e, key: unknown) => secrets.clear(requireSecretKey(key)))
+  handleTrusted(IPC_CHANNELS.secretsClear, (_e, key: unknown) => secrets.clear(requireSecretKey(key)))
   handleTrusted(
-    'secrets:status',
+    IPC_CHANNELS.secretsStatus,
     (_e, key: unknown): SecretStatus => secrets.status(requireSecretKey(key))
   )
 
   // ── 版と更新 ──
-  handleTrusted('app:version', () => APP_VERSION)
-  handleTrusted('app:checkUpdate', () => checkForUpdate())
-  handleTrusted('app:openReleases', () => openReleasePage())
+  handleTrusted(IPC_CHANNELS.appVersion, () => APP_VERSION)
+  handleTrusted(IPC_CHANNELS.appCheckUpdate, () => checkForUpdate())
+  handleTrusted(IPC_CHANNELS.appOpenReleases, () => openReleasePage())
 
   /** 変更履歴を読む。配布時は resources 配下に置かれる（package.json の extraResources） */
-  handleTrusted('app:changelog', () => {
+  handleTrusted(IPC_CHANNELS.appChangelog, () => {
     const candidates = app.isPackaged
       ? [join(process.resourcesPath, 'CHANGELOG.md')]
       : [join(__dirname, '..', '..', 'CHANGELOG.md'), join(app.getAppPath(), 'CHANGELOG.md')]
@@ -252,19 +264,19 @@ function startup(): void {
   })
 
   // ── ログ ──
-  handleTrusted('log:write', (_e, level: unknown, message: unknown, context?: unknown) => {
+  handleTrusted(IPC_CHANNELS.logWrite, (_e, level: unknown, message: unknown, context?: unknown) => {
     logFromRenderer(
       requireLogLevel(level),
       requireString(message, 'ログ本文'),
       requireLogContext(context)
     )
   })
-  handleTrusted('log:openFolder', () => shell.openPath(logsDir()))
+  handleTrusted(IPC_CHANNELS.logOpenFolder, () => shell.openPath(logsDir()))
 
   // ── バックアップ ──
-  handleTrusted('backup:create', () => backup.create())
-  handleTrusted('backup:list', () => backup.list())
-  handleTrusted('backup:openFolder', () => shell.openPath(backupDir()))
+  handleTrusted(IPC_CHANNELS.backupCreate, () => backup.create())
+  handleTrusted(IPC_CHANNELS.backupList, () => backup.list())
+  handleTrusted(IPC_CHANNELS.backupOpenFolder, () => shell.openPath(backupDir()))
 
   /**
    * 復元は「待避 → 再起動」の2段。即座に入れ替えないのは、
@@ -273,7 +285,7 @@ function startup(): void {
    * 実行確認はレンダラ側の共通ダイアログ（ui/dialog）で取る。
    * main 側でも showMessageBox を出すと二重に確認することになるので置かない。
    */
-  handleTrusted('backup:restore', async (_e, path: unknown) => {
+  handleTrusted(IPC_CHANNELS.backupRestore, async (_e, path: unknown) => {
     await backup.stageRestore(requireString(path, '復元元パス', 32_767))
     // E2Eでは同じuserDataで明示的に再起動し、Playwrightの制御外へ子プロセスを残さない。
     if (process.env.APP_E2E !== '1') {
@@ -284,16 +296,16 @@ function startup(): void {
   })
 
   // ── 動作確認用 ──
-  handleTrusted('notes:list', () => store.db.select().from(notes).all())
+  handleTrusted(IPC_CHANNELS.notesList, () => store.db.select().from(notes).all())
 
-  handleTrusted('notes:add', (_e, body: unknown) => {
+  handleTrusted(IPC_CHANNELS.notesAdd, (_e, body: unknown) => {
     store.db
       .insert(notes)
       .values({ body: requireString(body, '本文'), createdAt: new Date().toISOString() })
       .run()
   })
 
-  handleTrusted('notes:update', (_e, id: unknown, body: unknown) => {
+  handleTrusted(IPC_CHANNELS.notesUpdate, (_e, id: unknown, body: unknown) => {
     store.db
       .update(notes)
       .set({ body: requireString(body, '本文') })
@@ -301,7 +313,7 @@ function startup(): void {
       .run()
   })
 
-  handleTrusted('notes:remove', (_e, id: unknown) => {
+  handleTrusted(IPC_CHANNELS.notesRemove, (_e, id: unknown) => {
     store.db.delete(notes).where(eq(notes.id, requirePositiveId(id))).run()
   })
 
@@ -310,13 +322,45 @@ function startup(): void {
    * 確かめる（tests/ipc-safe.spec.ts）。配布版では登録しない。
    */
   if (process.env.APP_E2E === '1') {
-    handleTrusted('e2e:safeSendOnDestroyedWindow', () => {
+    handleTrusted(IPC_CHANNELS.e2eSafeSendOnDestroyedWindow, () => {
       const win = new BrowserWindow({ show: false })
       win.destroy()
       // 例外を投げずに戻ってくれば安全に無視できている
       safeSend(win, 'noop')
       return true
     })
+    handleTrusted(IPC_CHANNELS.e2eRegisteredIpcChannels, () => registeredIpcChannels())
+    handleTrusted(
+      IPC_CHANNELS.e2eSimulateElectronFailure,
+      (event, kind: 'renderer' | 'child' | 'unresponsive' | 'load') => {
+        if (kind === 'renderer') {
+          app.emit('render-process-gone', {}, event.sender, { reason: 'crashed', exitCode: 99 })
+        } else if (kind === 'child') {
+          app.emit('child-process-gone', {}, {
+            type: 'Utility',
+            name: 'e2e-helper',
+            reason: 'crashed',
+            exitCode: 98,
+            serviceName: 'e2e'
+          })
+        } else if (kind === 'unresponsive') {
+          BrowserWindow.fromWebContents(event.sender)?.emit('unresponsive')
+        } else if (kind === 'load') {
+          event.sender.emit(
+            'did-fail-load',
+            {},
+            -105,
+            'NAME_NOT_RESOLVED',
+            'https://example.test/?token=load-secret',
+            true,
+            0,
+            0
+          )
+        } else {
+          throw new TypeError('故障種別が正しくない')
+        }
+      }
+    )
   }
 
   createWindow()

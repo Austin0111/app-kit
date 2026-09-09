@@ -4,6 +4,19 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.2.6] - 2026-09-09
+
+- preloadとmainで使うIPCチャンネルを`src/shared/ipc-channels.ts`へ集約し、公開契約の
+  全チャンネルにmain handlerが登録されていることを実Electronで検査するようにした
+- 配布版が無い時に必ず失敗する`npm run test:packaged`を追加し、通常の`verify`では
+  任意、配布確認ではfail-closedという役割を分けた
+- `create-app.mjs`の生成物を実際に作り、名前整合、型検査、electron-vite buildを
+  通す受入テストを追加した。生成時は`package-lock.json`の名前と版も0.1.0へ揃える
+- `render-process-gone`、`child-process-gone`、ウィンドウの`unresponsive`、main frameの
+  `did-fail-load`を既存ログへ記録し、E2Eの故障注入で主要3経路を確認するようにした
+- E2Eを左端モニターの作業領域内へ配置して`showInactive()`で起動し、ユーザーの
+  操作中ウィンドウへフォーカスを移さない契約を回帰テストで固定した
+
 ## [0.2.5] - 2026-09-09
 
 - ログ本文、付随情報、開発用consoleを同じ伏せ字済みデータから出力し、URLクエリ、

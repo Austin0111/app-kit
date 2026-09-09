@@ -192,6 +192,11 @@ tests/
   smoke.spec.ts        起動して主要部品が出るか
   ui.spec.ts           ダイアログ・トースト・タイトルバー
   persistence.spec.ts  再起動を跨ぐ確認（設定が残るか）
+  backup.spec.ts       破損・範囲外DBの拒否と正常な復元
+  security.spec.ts     sandbox・遷移拒否・IPC入力・秘密カナリア
+  ipc-contract.spec.ts preloadとmainのhandler契約
+  crash-log.spec.ts    Electron固有障害の故障注入
+  generator.spec.ts    生成した派生アプリの型・名前・build
   screenshot.spec.ts   目視用の素材を撮る（合否は判定しない）
 ```
 

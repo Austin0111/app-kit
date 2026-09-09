@@ -5,6 +5,8 @@ import {
   type WebContents
 } from 'electron'
 
+const registeredChannels = new Set<string>()
+
 /**
  * renderer から main へ入る境界の共通防御。
  * iframe や所有者不明の webContents から、特権 IPC を呼ばせない。
@@ -26,6 +28,12 @@ export function handleTrusted<T extends unknown[]>(
     trustedSenderWindow(event)
     return listener(event, ...(args as T))
   })
+  registeredChannels.add(channel)
+}
+
+/** E2Eの契約検査用。外へ返す配列は複製して登録順への依存を避ける。 */
+export function registeredIpcChannels(): string[] {
+  return [...registeredChannels].sort()
 }
 
 /** 本体画面はアプリ外へ遷移せず、新しい子画面も勝手に作らない。 */

@@ -136,6 +136,21 @@ replaceIn('src/renderer/index.html', [['<title>app-kit</title>', `<title>${displ
   console.log(`  package.json … name / version / description / appId / productName`)
 }
 
+// lockfile側のルートpackage情報も揃える。ここが雛形の版・名前のままだと、
+// 最初のnpm操作で意図しない差分が出て「生成直後のコミット」が再現不能になる。
+{
+  const path = join(targetDir, 'package-lock.json')
+  const lock = JSON.parse(readFileSync(path, 'utf8'))
+  lock.name = internalName
+  lock.version = '0.1.0'
+  if (lock.packages?.['']) {
+    lock.packages[''].name = internalName
+    lock.packages[''].version = '0.1.0'
+  }
+  writeFileSync(path, JSON.stringify(lock, null, 2) + '\n')
+  console.log(`  package-lock.json … name / version`)
+}
+
 // ---------------------------------------------------------------- 初期化
 
 const today = new Date().toISOString().slice(0, 10)

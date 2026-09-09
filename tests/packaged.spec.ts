@@ -71,6 +71,9 @@ function distVersion(): string {
 }
 
 test.describe('配布版', () => {
+  if (process.env.REQUIRE_PACKAGED === '1' && !existsSync(EXE)) {
+    throw new Error(`配布版が見つからない: ${EXE}`)
+  }
   test.skip(!existsSync(EXE), '`npm run dist` を実行してから確かめること')
 
   test('パッケージ版が起動し、DBと変更履歴を読める', async () => {

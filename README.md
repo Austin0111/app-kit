@@ -66,6 +66,7 @@ npm run dev         開発起動
 npm run typecheck   型検査
 npm run verify      型・名前・ビルド・テストをまとめて確認
 npm run dist        インストーラを作る（dist/ に出る）
+npm run test:packaged 配布版を必須として起動確認（無ければ失敗）
 npm run db:generate スキーマ変更後のマイグレーション生成
 ```
 
@@ -85,6 +86,7 @@ npm run db:generate スキーマ変更後のマイグレーション生成
 | `src/main/crash-log.ts` | 未処理例外をログへ残す。**何よりも先に仕掛ける** |
 | `src/main/security.ts` | sandbox、画面遷移・権限の拒否、main frame限定IPC |
 | `src/main/ipc-validation.ts` | rendererから届く値の実行時検証 |
+| `src/shared/ipc-channels.ts` | preload↔mainのチャンネル契約。追加時はここへ集約する |
 | `src/main/window.ts` | 窓制御（最小化 / 最大化 / 閉じる）と最大化状態の push |
 | `src/renderer/src/ui/` | カスタムタイトルバー、モーダル（confirm / prompt / 任意ボタン）、トースト |
 | `src/main/spawn.ts` | 外部プロセス起動。**どこからも import していない。要らなければ消してよい** |

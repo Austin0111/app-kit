@@ -9,8 +9,9 @@ import {
 } from '../shared/settings'
 import type { Db } from './db'
 import { logCrash } from './crash-log'
+import { IPC_SEND_CHANNELS } from '../shared/ipc-channels'
 
-export const SETTINGS_CHANGED_CHANNEL = 'settings:changed'
+export const SETTINGS_CHANGED_CHANNEL = IPC_SEND_CHANNELS.settingsChanged
 
 /**
  * 設定 KV の保持と永続化。

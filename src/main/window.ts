@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron'
 import { safeSend } from './ipc-safe'
 import { handleTrusted, trustedSenderWindow } from './security'
+import { IPC_CHANNELS, IPC_SEND_CHANNELS } from '../shared/ipc-channels'
 
 /**
  * カスタムタイトルバーのための窓制御。
@@ -14,12 +15,12 @@ import { handleTrusted, trustedSenderWindow } from './security'
  */
 
 export const WINDOW_CHANNELS = {
-  minimize: 'window:minimize',
-  toggleMaximize: 'window:toggleMaximize',
-  close: 'window:close',
-  isMaximized: 'window:isMaximized',
+  minimize: IPC_CHANNELS.windowMinimize,
+  toggleMaximize: IPC_CHANNELS.windowToggleMaximize,
+  close: IPC_CHANNELS.windowClose,
+  isMaximized: IPC_CHANNELS.windowIsMaximized,
   /** main → renderer。最大化状態が変わったら送る */
-  maximizedChanged: 'window:maximizedChanged'
+  maximizedChanged: IPC_SEND_CHANNELS.windowMaximizedChanged
 } as const
 
 /** 送り主のウィンドウを取り出す（複数窓でも取り違えないように） */

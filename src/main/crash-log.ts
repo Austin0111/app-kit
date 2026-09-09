@@ -1,3 +1,4 @@
+import { app } from 'electron'
 import { log } from './log'
 
 /**
@@ -23,6 +24,49 @@ export function installCrashLog(): void {
       種類: 'unhandledRejection',
       詳細: reason
     })
+  })
+
+  app.on('render-process-gone', (_event, contents, details) => {
+    log.error('rendererプロセスが終了した', {
+      種類: 'render-process-gone',
+      webContentsId: contents.id,
+      理由: details.reason,
+      終了コード: details.exitCode
+    })
+  })
+
+  app.on('child-process-gone', (_event, details) => {
+    log.error('Electronの子プロセスが終了した', {
+      種類: 'child-process-gone',
+      プロセス種別: details.type,
+      名前: details.name,
+      理由: details.reason,
+      終了コード: details.exitCode,
+      サービス名: details.serviceName
+    })
+  })
+
+  app.on('browser-window-created', (_event, win) => {
+    win.on('unresponsive', () => {
+      log.warn('ウィンドウが応答しなくなった', {
+        種類: 'unresponsive',
+        webContentsId: win.webContents.id
+      })
+    })
+
+    win.webContents.on(
+      'did-fail-load',
+      (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+        // -3は通常の遷移キャンセルでも発生する。main frameの実障害だけを残す。
+        if (!isMainFrame || errorCode === -3) return
+        log.error('画面の読み込みに失敗した', {
+          種類: 'did-fail-load',
+          エラーコード: errorCode,
+          説明: errorDescription,
+          URL: validatedURL
+        })
+      }
+    )
   })
 }
 
