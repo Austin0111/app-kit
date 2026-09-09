@@ -83,6 +83,8 @@ npm run db:generate スキーマ変更後のマイグレーション生成
 | `src/main/backup.ts` | バックアップ／復元。自動世代管理つき |
 | `src/main/log/` | ログ基盤。伏せ字・ローテーション込み（下記） |
 | `src/main/crash-log.ts` | 未処理例外をログへ残す。**何よりも先に仕掛ける** |
+| `src/main/security.ts` | sandbox、画面遷移・権限の拒否、main frame限定IPC |
+| `src/main/ipc-validation.ts` | rendererから届く値の実行時検証 |
 | `src/main/window.ts` | 窓制御（最小化 / 最大化 / 閉じる）と最大化状態の push |
 | `src/renderer/src/ui/` | カスタムタイトルバー、モーダル（confirm / prompt / 任意ボタン）、トースト |
 | `src/main/spawn.ts` | 外部プロセス起動。**どこからも import していない。要らなければ消してよい** |
@@ -123,8 +125,9 @@ log.error('APIの呼び出しに失敗した', {
   Response   : rate limit exceeded
 ```
 
-- **秘密情報は書き出し時に自動で伏せる**（`log/redact.ts`）。キー名に `token` `password`
-  `api_key` `authorization` 等を含むもの、URL のクエリ、`Bearer xxx` が対象。
+- **秘密情報は書き出し時に自動で伏せる**（`log/redact.ts`）。ログ本文と付随情報の両方で、
+  キー名に `token` `password` `api_key` `authorization` 等を含むもの、URL のクエリ、
+  `Bearer xxx`、URL埋め込みのBasic認証が対象。
   **消さずに `***` に置き換える**（「無かった」のか「あったが誤り」なのかを区別するため）
 - **ローテーションはサイズ主**。日数だと容量が抑えられない（クローラー等は 1 日で数百MB）。
   饒舌なログが見たいエラーを押し出す問題は、error.log を別系統にして解いている
@@ -165,7 +168,10 @@ secrets.status('openaiApiKey')     // 'unset' | 'ok' | 'plaintext' | 'undecrypta
 - **バックアップに素朴なファイルコピーを使わない**。WAL モードでは動作中の内容が
   `.db-wal` 側にあり、本体だけコピーすると中身が抜ける。`db.backup()` を使う
 - **起動中の DB ファイルは掴まれていて上書きできない**。だから復元は
-  `.restore` に待避して次回起動時に適用する
+  `.restore` に待避して次回起動時に適用する。復元元は自アプリのバックアップフォルダ
+  直下に限定し、`quick_check`と必須schemaを確認してから待避する
+- **rendererの型は防御にならない**。画面が侵害された場合も想定し、特権IPCの入力は
+  main側で検証する。外部URLはrendererから受け取らず、main側のallowlistや固定値から作る
 - **`setState` の更新関数に副作用を書かない**（`setTimeout` / id 採番 / `resolve`）。
   StrictMode は更新関数を 2 回呼ぶ
 - **React 18 は `<dialog>` の `cancel` / `close` を合成イベント化していない**（React 19 から）。

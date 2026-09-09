@@ -1,5 +1,6 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow } from 'electron'
 import { safeSend } from './ipc-safe'
+import { handleTrusted, trustedSenderWindow } from './security'
 
 /**
  * カスタムタイトルバーのための窓制御。
@@ -22,24 +23,19 @@ export const WINDOW_CHANNELS = {
 } as const
 
 /** 送り主のウィンドウを取り出す（複数窓でも取り違えないように） */
-function senderWindow(e: Electron.IpcMainInvokeEvent): BrowserWindow | null {
-  return BrowserWindow.fromWebContents(e.sender)
-}
-
 export function registerWindowHandlers(): void {
-  ipcMain.handle(WINDOW_CHANNELS.minimize, (e) => senderWindow(e)?.minimize())
+  handleTrusted(WINDOW_CHANNELS.minimize, (e) => trustedSenderWindow(e).minimize())
 
-  ipcMain.handle(WINDOW_CHANNELS.toggleMaximize, (e) => {
-    const win = senderWindow(e)
-    if (!win) return false
+  handleTrusted(WINDOW_CHANNELS.toggleMaximize, (e) => {
+    const win = trustedSenderWindow(e)
     if (win.isMaximized()) win.unmaximize()
     else win.maximize()
     return win.isMaximized()
   })
 
-  ipcMain.handle(WINDOW_CHANNELS.close, (e) => senderWindow(e)?.close())
+  handleTrusted(WINDOW_CHANNELS.close, (e) => trustedSenderWindow(e).close())
 
-  ipcMain.handle(WINDOW_CHANNELS.isMaximized, (e) => !!senderWindow(e)?.isMaximized())
+  handleTrusted(WINDOW_CHANNELS.isMaximized, (e) => trustedSenderWindow(e).isMaximized())
 }
 
 /**

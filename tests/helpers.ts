@@ -19,8 +19,12 @@ export type Launched = {
   close: () => Promise<void>
 }
 
-export async function launchApp(): Promise<Launched> {
-  const userDataDir = mkdtempSync(join(tmpdir(), 'e2e-test-'))
+export async function launchApp(options: {
+  userDataDir?: string
+  removeUserDataOnClose?: boolean
+} = {}): Promise<Launched> {
+  const userDataDir = options.userDataDir ?? mkdtempSync(join(tmpdir(), 'e2e-test-'))
+  const removeUserDataOnClose = options.removeUserDataOnClose ?? options.userDataDir === undefined
 
   const app = await electron.launch({
     args: ['out/main/index.js'],
@@ -46,10 +50,12 @@ export async function launchApp(): Promise<Launched> {
     userDataDir,
     close: async () => {
       await app.close()
-      try {
-        rmSync(userDataDir, { recursive: true, force: true })
-      } catch {
-        // 掴まれたままなら残る。一時フォルダなので放っておいてよい
+      if (removeUserDataOnClose) {
+        try {
+          rmSync(userDataDir, { recursive: true, force: true })
+        } catch {
+          // 掴まれたままなら残る。一時フォルダなので放っておいてよい
+        }
       }
     }
   }

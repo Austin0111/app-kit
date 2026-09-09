@@ -42,7 +42,7 @@ function isSecretKey(key: string): boolean {
 }
 
 /** 文字列の中に紛れた秘密を伏せる（URL のクエリ、Bearer トークン等）。 */
-function redactString(text: string): string {
+export function redactString(text: string): string {
   return (
     text
       // https://example.com/x?api_key=abc&token=def

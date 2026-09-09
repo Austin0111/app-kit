@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { appendFileSync, existsSync, mkdirSync, renameSync, rmSync, statSync } from 'fs'
 import { join } from 'path'
-import { redact } from './redact'
+import { redact, redactString } from './redact'
 import type { LogContext, LogEntry, LogLevel } from '../../shared/log-types'
 
 /**
@@ -113,7 +113,7 @@ function emit(level: LogLevel, source: string, message: string, context?: LogCon
     time: new Date().toISOString(),
     level,
     source,
-    message: String(message),
+    message: redactString(String(message)),
     // **ここが唯一の出口**。伏せ字は必ずこの 1 箇所を通る
     context: context ? (redact(context) as LogContext) : undefined
   }
@@ -128,7 +128,7 @@ function emit(level: LogLevel, source: string, message: string, context?: LogCon
   // 開発中はコンソールにも出す（配布版では邪魔なので出さない）
   if (!app.isPackaged) {
     const fn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log
-    fn(`[${level}] ${message}`, context ?? '')
+    fn(`[${level}] ${entry.message}`, entry.context ?? '')
   }
 }
 

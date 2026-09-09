@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, screen, shell } from 'electron'
+import { app, BrowserWindow, dialog, Menu, screen, shell } from 'electron'
 import { join } from 'path'
 import { APP_ID, APP_VERSION, DISPLAY_NAME, INTERNAL_NAME } from '../shared/app-meta'
 import { eq } from 'drizzle-orm'
@@ -13,8 +13,15 @@ import { log, logFromRenderer, logsDir, setDebugLogging } from './log'
 import { SecretStore, type SecretStatus } from './secrets'
 import { checkForUpdate, openReleasePage } from './update-check'
 import { readFileSync } from 'fs'
-import type { Settings } from '../shared/settings'
-import type { LogContext, LogLevel } from '../shared/log-types'
+import { handleTrusted, lockDownWebContents } from './security'
+import {
+  requireLogContext,
+  requireLogLevel,
+  requirePositiveId,
+  requireSecretKey,
+  requireSettingsPatch,
+  requireString
+} from './ipc-validation'
 
 // 未処理例外の安全網は「何よりも先に」入れる（Oto棚の作法）。
 // ここより前で落ちると原因が残らないため、DB を開くより前に仕掛ける。
@@ -109,12 +116,15 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false
+      sandbox: true
     }
   })
 
   if (bounds?.maximized) win.maximize()
-  win.once('ready-to-show', () => win.show())
+  lockDownWebContents(win.webContents)
+  win.once('ready-to-show', () =>
+    process.env.APP_E2E === '1' ? win.showInactive() : win.show()
+  )
   watchMaximizeState(win)
 
   // 終了時ではなく閉じる直前に控える。終了時に書こうとすると
@@ -203,25 +213,30 @@ function startup(): void {
   registerWindowHandlers()
 
   // ── 設定 KV ──
-  ipcMain.handle('settings:getAll', () => settings.getAll())
-  ipcMain.handle('settings:setMany', (_e, patch: Partial<Settings>) => {
-    settings.setMany(patch)
+  handleTrusted('settings:getAll', () => settings.getAll())
+  handleTrusted('settings:setMany', (_e, patch: unknown) => {
+    settings.setMany(requireSettingsPatch(patch))
   })
 
   // ── 秘密情報 ──
   // **値を返す口は用意しない。** 平文が IPC を渡ってレンダラーのメモリに残るのを避けるため。
   // 秘密を使う処理は main 側に置き、レンダラーからは「設定した/消した/状態」だけを扱う。
-  ipcMain.handle('secrets:set', (_e, key: string, value: string) => secrets.set(key, value))
-  ipcMain.handle('secrets:clear', (_e, key: string) => secrets.clear(key))
-  ipcMain.handle('secrets:status', (_e, key: string): SecretStatus => secrets.status(key))
+  handleTrusted('secrets:set', (_e, key: unknown, value: unknown) =>
+    secrets.set(requireSecretKey(key), requireString(value, '秘密情報', 65_536))
+  )
+  handleTrusted('secrets:clear', (_e, key: unknown) => secrets.clear(requireSecretKey(key)))
+  handleTrusted(
+    'secrets:status',
+    (_e, key: unknown): SecretStatus => secrets.status(requireSecretKey(key))
+  )
 
   // ── 版と更新 ──
-  ipcMain.handle('app:version', () => APP_VERSION)
-  ipcMain.handle('app:checkUpdate', () => checkForUpdate())
-  ipcMain.handle('app:openReleases', (_e, url?: string) => openReleasePage(url))
+  handleTrusted('app:version', () => APP_VERSION)
+  handleTrusted('app:checkUpdate', () => checkForUpdate())
+  handleTrusted('app:openReleases', () => openReleasePage())
 
   /** 変更履歴を読む。配布時は resources 配下に置かれる（package.json の extraResources） */
-  ipcMain.handle('app:changelog', () => {
+  handleTrusted('app:changelog', () => {
     const candidates = app.isPackaged
       ? [join(process.resourcesPath, 'CHANGELOG.md')]
       : [join(__dirname, '..', '..', 'CHANGELOG.md'), join(app.getAppPath(), 'CHANGELOG.md')]
@@ -237,15 +252,19 @@ function startup(): void {
   })
 
   // ── ログ ──
-  ipcMain.handle('log:write', (_e, level: LogLevel, message: string, context?: LogContext) => {
-    logFromRenderer(level, message, context)
+  handleTrusted('log:write', (_e, level: unknown, message: unknown, context?: unknown) => {
+    logFromRenderer(
+      requireLogLevel(level),
+      requireString(message, 'ログ本文'),
+      requireLogContext(context)
+    )
   })
-  ipcMain.handle('log:openFolder', () => shell.openPath(logsDir()))
+  handleTrusted('log:openFolder', () => shell.openPath(logsDir()))
 
   // ── バックアップ ──
-  ipcMain.handle('backup:create', () => backup.create())
-  ipcMain.handle('backup:list', () => backup.list())
-  ipcMain.handle('backup:openFolder', () => shell.openPath(backupDir()))
+  handleTrusted('backup:create', () => backup.create())
+  handleTrusted('backup:list', () => backup.list())
+  handleTrusted('backup:openFolder', () => shell.openPath(backupDir()))
 
   /**
    * 復元は「待避 → 再起動」の2段。即座に入れ替えないのは、
@@ -254,26 +273,36 @@ function startup(): void {
    * 実行確認はレンダラ側の共通ダイアログ（ui/dialog）で取る。
    * main 側でも showMessageBox を出すと二重に確認することになるので置かない。
    */
-  ipcMain.handle('backup:restore', (_e, path: string) => {
-    backup.stageRestore(path)
-    app.relaunch()
-    app.quit()
+  handleTrusted('backup:restore', async (_e, path: unknown) => {
+    await backup.stageRestore(requireString(path, '復元元パス', 32_767))
+    // E2Eでは同じuserDataで明示的に再起動し、Playwrightの制御外へ子プロセスを残さない。
+    if (process.env.APP_E2E !== '1') {
+      app.relaunch()
+      app.quit()
+    }
     return true
   })
 
   // ── 動作確認用 ──
-  ipcMain.handle('notes:list', () => store.db.select().from(notes).all())
+  handleTrusted('notes:list', () => store.db.select().from(notes).all())
 
-  ipcMain.handle('notes:add', (_e, body: string) => {
-    store.db.insert(notes).values({ body, createdAt: new Date().toISOString() }).run()
+  handleTrusted('notes:add', (_e, body: unknown) => {
+    store.db
+      .insert(notes)
+      .values({ body: requireString(body, '本文'), createdAt: new Date().toISOString() })
+      .run()
   })
 
-  ipcMain.handle('notes:update', (_e, id: number, body: string) => {
-    store.db.update(notes).set({ body }).where(eq(notes.id, id)).run()
+  handleTrusted('notes:update', (_e, id: unknown, body: unknown) => {
+    store.db
+      .update(notes)
+      .set({ body: requireString(body, '本文') })
+      .where(eq(notes.id, requirePositiveId(id)))
+      .run()
   })
 
-  ipcMain.handle('notes:remove', (_e, id: number) => {
-    store.db.delete(notes).where(eq(notes.id, id)).run()
+  handleTrusted('notes:remove', (_e, id: unknown) => {
+    store.db.delete(notes).where(eq(notes.id, requirePositiveId(id))).run()
   })
 
   /**
@@ -281,7 +310,7 @@ function startup(): void {
    * 確かめる（tests/ipc-safe.spec.ts）。配布版では登録しない。
    */
   if (process.env.APP_E2E === '1') {
-    ipcMain.handle('e2e:safeSendOnDestroyedWindow', () => {
+    handleTrusted('e2e:safeSendOnDestroyedWindow', () => {
       const win = new BrowserWindow({ show: false })
       win.destroy()
       // 例外を投げずに戻ってくれば安全に無視できている

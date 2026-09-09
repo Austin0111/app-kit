@@ -35,7 +35,7 @@ export function VersionBadge({
       {update?.hasUpdate && (
         <button
           className="version__update"
-          onClick={() => window.api.app.openReleases(update.url)}
+          onClick={() => window.api.app.openReleases()}
           title={`新しい版 ${update.latestVersion} がある。ブラウザで開く`}
         >
           更新あり

@@ -26,8 +26,6 @@ export type UpdateInfo = {
   hasUpdate: boolean
   currentVersion: string
   latestVersion?: string
-  /** リリースページ。DL はここをブラウザで開かせる */
-  url?: string
   /** 確認できなかった理由（通信不可・未公開など）。hasUpdate は false になる */
   problem?: string
 }
@@ -99,7 +97,7 @@ export async function checkForUpdate(): Promise<UpdateInfo> {
     if (hasUpdate) {
       log.info('新しい版がある', { 現在: currentVersion, 最新: latestVersion })
     }
-    return { hasUpdate, currentVersion, latestVersion, url: json.html_url }
+    return { hasUpdate, currentVersion, latestVersion }
   } catch (err) {
     // 通信できない状況は珍しくない。ログに残すが騒がない
     log.debug('更新の確認に失敗した', { 詳細: err })
@@ -108,6 +106,6 @@ export async function checkForUpdate(): Promise<UpdateInfo> {
 }
 
 /** リリースページをブラウザで開く。アプリ内ではダウンロードしない。 */
-export async function openReleasePage(url?: string): Promise<void> {
-  await shell.openExternal(url ?? `https://github.com/${OWNER}/${REPO}/releases`)
+export async function openReleasePage(): Promise<void> {
+  await shell.openExternal(`https://github.com/${OWNER}/${REPO}/releases`)
 }

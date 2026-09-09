@@ -58,8 +58,7 @@ const api = {
     version: (): Promise<string> => ipcRenderer.invoke('app:version'),
     /** 更新確認。通知のみで、ダウンロードはブラウザに委ねる */
     checkUpdate: (): Promise<UpdateInfo> => ipcRenderer.invoke('app:checkUpdate'),
-    openReleases: (url?: string): Promise<void> =>
-      ipcRenderer.invoke('app:openReleases', url),
+    openReleases: (): Promise<void> => ipcRenderer.invoke('app:openReleases'),
     changelog: (): Promise<string | null> => ipcRenderer.invoke('app:changelog')
   },
   log: {

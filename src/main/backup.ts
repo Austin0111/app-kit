@@ -1,6 +1,16 @@
 import { app } from 'electron'
-import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, copyFileSync } from 'fs'
-import { join } from 'path'
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  realpathSync,
+  renameSync,
+  rmSync,
+  statSync
+} from 'fs'
+import { dirname, extname, join, relative } from 'path'
+import Database from 'better-sqlite3'
 import type BetterSqlite3 from 'better-sqlite3'
 import type { SettingsStore } from './settings'
 import { logCrash } from './crash-log'
@@ -30,6 +40,7 @@ const RESTORE_SUFFIX = '.restore'
 // バックアップ名も表示名ではなく内部識別子から作る（改名しても既存分を見失わない）
 const BACKUP_PREFIX = `${INTERNAL_NAME}_`
 const BACKUP_EXT = '.db'
+const REQUIRED_TABLES = ['settings', 'notes'] as const
 
 /**
  * ファイル名用の日時（ローカル時刻）。
@@ -44,10 +55,63 @@ function localStamp(d = new Date()): string {
   )
 }
 
+function nextBackupPath(): string {
+  const dir = backupDir()
+  const stem = `${BACKUP_PREFIX}${localStamp()}`
+  let path = join(dir, stem + BACKUP_EXT)
+  for (let suffix = 1; existsSync(path); suffix++) {
+    path = join(dir, `${stem}_${suffix}${BACKUP_EXT}`)
+  }
+  return path
+}
+
 export function backupDir(): string {
   const dir = join(app.getPath('userData'), 'backups')
   mkdirSync(dir, { recursive: true })
   return dir
+}
+
+function validateDatabase(path: string): void {
+  let db: BetterSqlite3.Database | null = null
+  try {
+    db = new Database(path, { readonly: true, fileMustExist: true })
+    const check = db.pragma('quick_check') as { quick_check: string }[]
+    if (check.length !== 1 || check[0]?.quick_check !== 'ok') {
+      throw new Error('データベースの整合性検査に失敗した')
+    }
+    const rows = db
+      .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
+      .all() as { name: string }[]
+    const names = new Set(rows.map((row) => row.name))
+    if (REQUIRED_TABLES.some((name) => !names.has(name))) {
+      throw new Error('このアプリのバックアップではない')
+    }
+  } finally {
+    db?.close()
+  }
+}
+
+/** renderer が指定できるのは、このアプリ自身が列挙したバックアップだけ。 */
+function validateRestoreSource(srcPath: string): string {
+  if (typeof srcPath !== 'string' || extname(srcPath).toLowerCase() !== BACKUP_EXT) {
+    throw new Error('復元元のファイルが正しくない')
+  }
+  if (!existsSync(srcPath) || !statSync(srcPath).isFile()) {
+    throw new Error('復元元のファイルが見つからない')
+  }
+
+  const root = realpathSync(backupDir())
+  const source = realpathSync(srcPath)
+  const rel = relative(root, source)
+  if (!rel || rel.startsWith('..') || rel.includes(':') || dirname(rel) !== '.') {
+    throw new Error('バックアップフォルダ外からの復元を拒否した')
+  }
+  const name = rel
+  if (!name.startsWith(BACKUP_PREFIX) || !name.endsWith(BACKUP_EXT)) {
+    throw new Error('このアプリのバックアップではない')
+  }
+  validateDatabase(source)
+  return source
 }
 
 /**
@@ -57,14 +121,27 @@ export function backupDir(): string {
 export function applyPendingRestore(dbPath: string): boolean {
   const pending = dbPath + RESTORE_SUFFIX
   if (!existsSync(pending)) return false
+  const rollback = dbPath + '.before-restore'
   try {
+    // staging 後にファイルが差し替えられていても、本番DBへ入れる直前に再検査する。
+    validateDatabase(pending)
+
     // WAL/SHM が残っていると復元した本体と食い違うので必ず捨てる
     for (const suffix of ['-wal', '-shm']) {
       const sidecar = dbPath + suffix
       if (existsSync(sidecar)) rmSync(sidecar, { force: true })
     }
-    copyFileSync(pending, dbPath)
-    rmSync(pending, { force: true })
+
+    // 現DBを同じディレクトリへ退避してからrenameする。適用に失敗したら元へ戻す。
+    if (existsSync(rollback)) rmSync(rollback, { force: true })
+    if (existsSync(dbPath)) renameSync(dbPath, rollback)
+    try {
+      renameSync(pending, dbPath)
+    } catch (err) {
+      if (existsSync(rollback)) renameSync(rollback, dbPath)
+      throw err
+    }
+    if (existsSync(rollback)) rmSync(rollback, { force: true })
     return true
   } catch (err) {
     // 失敗しても既存 DB で起動を続ける（起動不能にしない）
@@ -89,8 +166,7 @@ export class BackupService {
 
   /** バックアップを 1 本取り、世代数を超えた古いものを消す。戻り値は作成したファイルのパス。 */
   async create(): Promise<string> {
-    const dir = backupDir()
-    const dest = join(dir, `${BACKUP_PREFIX}${localStamp()}${BACKUP_EXT}`)
+    const dest = nextBackupPath()
 
     // Online Backup API。動作中でも一貫したスナップショットが取れる。
     await this.sqlite.backup(dest)
@@ -150,12 +226,21 @@ export class BackupService {
    * 復元ファイルを待避する。実際の入れ替えは次回起動時（applyPendingRestore）。
    * 呼び出し側は、この後アプリを再起動させること。
    */
-  stageRestore(srcPath: string): void {
+  async stageRestore(srcPath: string): Promise<void> {
+    const source = validateRestoreSource(srcPath)
     const pending = this.dbPath + RESTORE_SUFFIX
     // 一旦テンポラリへ写してから rename する（コピー途中で落ちても
     // 中途半端な .restore を次回起動が拾わないように）
     const tmp = pending + '.tmp'
-    copyFileSync(srcPath, tmp)
-    renameSync(tmp, pending)
+    try {
+      copyFileSync(source, tmp)
+      validateDatabase(tmp)
+
+      // 復元操作の直前状態もOnline Backup APIで保存し、取り消し経路を残す。
+      await this.create()
+      renameSync(tmp, pending)
+    } finally {
+      if (existsSync(tmp)) rmSync(tmp, { force: true })
+    }
   }
 }
