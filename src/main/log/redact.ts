@@ -45,13 +45,19 @@ function isSecretKey(key: string): boolean {
 export function redactString(text: string): string {
   return (
     text
+      // Authorization: Bearer xxxxx。汎用の `authorization:` より先に処理し、
+      // 空白で区切られたトークン部分だけが残ることを防ぐ。
+      .replace(/(Bearer\s+)[\w.\-~+/]+=*/gi, `$1${REDACTED}`)
+      // ログや古いテキストにある `token=...` / `password: ...` 形式。
+      .replace(
+        /(\b(?:api[-_]?key|access[_-]?token|refresh[_-]?token|token|password|passwd|pwd|secret|authorization|cookie|credential|client[_-]?secret|private[_-]?key|session[_-]?id)\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi,
+        `$1${REDACTED}`
+      )
       // https://example.com/x?api_key=abc&token=def
       .replace(
         /([?&](?:api[-_]?key|token|access_token|key|secret|password|auth)=)[^&\s]+/gi,
         `$1${REDACTED}`
       )
-      // Authorization: Bearer xxxxx
-      .replace(/(Bearer\s+)[\w.\-~+/]+=*/gi, `$1${REDACTED}`)
       // Basic 認証を URL に埋めた形 https://user:pass@host
       // パスワードに @ が含まれることがあるので、**最後の @ まで**を貪欲に取る。
       // `[^/\s@]+` だと最初の @ で切れ、p@ssw0rd の "ssw0rd" が残ってしまう（実際に漏れた）

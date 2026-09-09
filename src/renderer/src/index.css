@@ -76,6 +76,11 @@ section {
   gap: 8px;
 }
 
+/* 診断など基盤操作が増えても、狭い窓で右端へはみ出させない。 */
+.backup-actions {
+  flex-wrap: wrap;
+}
+
 input {
   flex: 1;
   padding: 8px 10px;

@@ -17,6 +17,8 @@ export function installCrashLog(): void {
       種類: 'uncaughtException',
       詳細: err
     })
+    // main が不定状態のまま動き続ける方が危険。ログを書いた後に明示終了する。
+    setImmediate(() => app.exit(1))
   })
 
   process.on('unhandledRejection', (reason) => {

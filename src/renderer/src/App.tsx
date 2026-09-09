@@ -92,6 +92,15 @@ export default function App(): JSX.Element {
     }
   }
 
+  async function createDiagnostics(): Promise<void> {
+    try {
+      const name = await window.api.diagnostics.create()
+      toast.success(`診断情報を作成した: ${name}`)
+    } catch (err) {
+      toast.error(`診断情報の作成に失敗した: ${String(err)}`)
+    }
+  }
+
   async function restoreBackup(entry: BackupEntry): Promise<void> {
     const ok = await dialog.confirm(
       'このバックアップで現在のデータを置き換える',
@@ -215,10 +224,11 @@ export default function App(): JSX.Element {
 
           <section>
             <h2>バックアップ（{backups.length}世代）</h2>
-            <div className="row">
+            <div className="row backup-actions">
               <button onClick={createBackup}>今すぐバックアップ</button>
               <button onClick={() => window.api.backup.openFolder()}>フォルダを開く</button>
               <button onClick={() => window.api.log.openFolder()}>ログを開く</button>
+              <button onClick={createDiagnostics}>診断情報ZIPを作る</button>
               {window.api.isE2E && (
                 <button onClick={() => setBoom(true)}>描画を壊す（確認用）</button>
               )}

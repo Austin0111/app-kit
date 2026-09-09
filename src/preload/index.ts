@@ -24,7 +24,9 @@ const api = {
       ipcRenderer.invoke(IPC_CHANNELS.e2eRegisteredIpcChannels),
     simulateElectronFailure: (
       kind: 'renderer' | 'child' | 'unresponsive' | 'load'
-    ): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.e2eSimulateElectronFailure, kind)
+    ): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.e2eSimulateElectronFailure, kind),
+    recoveryState: (): Promise<{ reloadCount: number; lastAction: string }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.e2eRecoveryState)
   },
   window: {
     minimize: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.windowMinimize),
@@ -79,6 +81,9 @@ const api = {
     > => ipcRenderer.invoke(IPC_CHANNELS.backupList),
     restore: (path: string): Promise<boolean> => ipcRenderer.invoke(IPC_CHANNELS.backupRestore, path),
     openFolder: (): Promise<string> => ipcRenderer.invoke(IPC_CHANNELS.backupOpenFolder)
+  },
+  diagnostics: {
+    create: (): Promise<string> => ipcRenderer.invoke(IPC_CHANNELS.diagnosticsCreate)
   },
   notes: {
     list: (): Promise<{ id: number; body: string; createdAt: string; done: boolean }[]> =>

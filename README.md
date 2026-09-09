@@ -65,6 +65,7 @@ npx electron-rebuild -w better-sqlite3
 npm run dev         開発起動
 npm run typecheck   型検査
 npm run verify      型・名前・ビルド・テストをまとめて確認
+npm run release:verify  verify・配布物作成・配布版起動・版整合を一括確認
 npm run dist        インストーラを作る（dist/ に出る）
 npm run test:packaged 配布版を必須として起動確認（無ければ失敗）
 npm run db:generate スキーマ変更後のマイグレーション生成
@@ -83,7 +84,9 @@ npm run db:generate スキーマ変更後のマイグレーション生成
 | `src/main/db/` | DB とマイグレーション適用。スキーマは `schema.ts` |
 | `src/main/backup.ts` | バックアップ／復元。自動世代管理つき |
 | `src/main/log/` | ログ基盤。伏せ字・ローテーション込み（下記） |
-| `src/main/crash-log.ts` | 未処理例外をログへ残す。**何よりも先に仕掛ける** |
+| `src/main/crash-log.ts` | 未処理例外をログへ残し、mainの不定状態では安全終了する。**何よりも先に仕掛ける** |
+| `src/main/recovery.ts` | renderer停止・応答停止を利用者へ知らせ、再読込ループを防ぐ |
+| `src/main/diagnostics.ts` | 秘密・設定値・DBを含めない診断ZIPを作る |
 | `src/main/security.ts` | sandbox、画面遷移・権限の拒否、main frame限定IPC |
 | `src/main/ipc-validation.ts` | rendererから届く値の実行時検証 |
 | `src/shared/ipc-channels.ts` | preload↔mainのチャンネル契約。追加時はここへ集約する |
@@ -94,6 +97,10 @@ npm run db:generate スキーマ変更後のマイグレーション生成
 `notes` テーブルと画面上の一覧は**動作確認用**。新アプリでは消してよい。
 
 ## マイグレーション
+
+既存DBへ未適用マイグレーションがある時は、適用直前にOnline Backup APIで
+`backups/pre_migration_*.db`を作る。成功時は削除し、失敗時は起動を止めて退避を残す。
+通常バックアップの世代管理・復元一覧には混ぜない。
 
 `src/main/db/schema.ts` を編集して `npm run db:generate` を叩くと、
 `drizzle/` に差分 SQL が生成される。適用は起動時に自動。
@@ -135,6 +142,10 @@ log.error('APIの呼び出しに失敗した', {
   饒舌なログが見たいエラーを押し出す問題は、error.log を別系統にして解いている
 - **画面側の例外も記録する**。これが無いと React の不具合が DevTools にしか出ない
 - `debug` は既定で書かない。設定の `debugLogging` で有効化する
+
+画面の「診断情報ZIPを作る」は、版・実行環境・DBの`quick_check`・直近の障害概要・
+再伏せ字したログだけを固定allowlistで出力する。設定はキーと型だけで値を含めず、
+DB・バックアップ・秘密情報・ユーザーのローカルパスは含めない。
 
 ## 秘密情報（APIキー・トークン）
 

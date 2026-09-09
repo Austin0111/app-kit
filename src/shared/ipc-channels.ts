@@ -22,13 +22,15 @@ export const IPC_CHANNELS = {
   backupList: 'backup:list',
   backupRestore: 'backup:restore',
   backupOpenFolder: 'backup:openFolder',
+  diagnosticsCreate: 'diagnostics:create',
   notesList: 'notes:list',
   notesAdd: 'notes:add',
   notesUpdate: 'notes:update',
   notesRemove: 'notes:remove',
   e2eSafeSendOnDestroyedWindow: 'e2e:safeSendOnDestroyedWindow',
   e2eRegisteredIpcChannels: 'e2e:registeredIpcChannels',
-  e2eSimulateElectronFailure: 'e2e:simulateElectronFailure'
+  e2eSimulateElectronFailure: 'e2e:simulateElectronFailure',
+  e2eRecoveryState: 'e2e:recoveryState'
 } as const
 
 export const IPC_SEND_CHANNELS = {

@@ -15,6 +15,8 @@ import { checkForUpdate, openReleasePage } from './update-check'
 import { readFileSync } from 'fs'
 import { handleTrusted, lockDownWebContents, registeredIpcChannels } from './security'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
+import { getRecoveryState, installWindowRecovery } from './recovery'
+import { DiagnosticsService } from './diagnostics'
 import {
   requireLogContext,
   requireLogLevel,
@@ -65,10 +67,11 @@ if (!app.requestSingleInstanceLock()) {
   })
 }
 
-let store: ReturnType<typeof createDb>
+let store: Awaited<ReturnType<typeof createDb>>
 let settings: SettingsStore
 let backup: BackupService
 let secrets: SecretStore
+let diagnostics: DiagnosticsService
 
 /**
  * 保存した位置が今の画面に収まっているかを見る。
@@ -134,6 +137,7 @@ function createWindow(): void {
 
   if (bounds?.maximized) win.maximize()
   lockDownWebContents(win.webContents)
+  installWindowRecovery(win)
   win.once('ready-to-show', () =>
     process.env.APP_E2E === '1' ? win.showInactive() : win.show()
   )
@@ -172,17 +176,20 @@ function onStartupFailed(err: unknown): void {
   log.error('起動に失敗した', { 詳細: err })
   const detail = err instanceof Error ? err.message : String(err)
   try {
-    dialog.showErrorBox(
-      `${DISPLAY_NAME} を起動できなかった`,
-      `${detail}\n\n詳しい記録: ${join(app.getPath('userData'), 'logs', 'error.log')}`
-    )
+    // E2Eではネイティブダイアログを出すと自動テストが操作を奪うため、ログだけで検証する。
+    if (process.env.APP_E2E !== '1') {
+      dialog.showErrorBox(
+        `${DISPLAY_NAME} を起動できなかった`,
+        `${detail}\n\n詳しい記録: ${join(app.getPath('userData'), 'logs', 'error.log')}`
+      )
+    }
   } catch {
     // ダイアログすら出せない状況でも、ログには残っている
   }
-  app.quit()
+  app.exit(1)
 }
 
-function startup(): void {
+async function startup(): Promise<void> {
   /**
    * 既定のメニューバー（File / Edit / View …）を消す。
    *
@@ -196,10 +203,11 @@ function startup(): void {
    */
   Menu.setApplicationMenu(null)
 
-  store = createDb()
+  store = await createDb()
   settings = new SettingsStore(store.db)
   backup = new BackupService(store.sqlite, store.file, settings)
   secrets = new SecretStore(store.db)
+  diagnostics = new DiagnosticsService(store.sqlite, settings)
 
   setDebugLogging(settings.get('debugLogging'))
 
@@ -278,6 +286,14 @@ function startup(): void {
   handleTrusted(IPC_CHANNELS.backupList, () => backup.list())
   handleTrusted(IPC_CHANNELS.backupOpenFolder, () => shell.openPath(backupDir()))
 
+  // ── 診断情報 ──
+  // DB本体・秘密情報・設定値は含めず、固定allowlistの4ファイルだけをZIPにする。
+  handleTrusted(IPC_CHANNELS.diagnosticsCreate, () => {
+    const path = diagnostics.create()
+    if (process.env.APP_E2E !== '1') shell.showItemInFolder(path)
+    return path.split(/[\\/]/).at(-1) ?? path
+  })
+
   /**
    * 復元は「待避 → 再起動」の2段。即座に入れ替えないのは、
    * 起動中の DB ファイルを掴んでいて上書きできないため。
@@ -334,7 +350,9 @@ function startup(): void {
       IPC_CHANNELS.e2eSimulateElectronFailure,
       (event, kind: 'renderer' | 'child' | 'unresponsive' | 'load') => {
         if (kind === 'renderer') {
-          app.emit('render-process-gone', {}, event.sender, { reason: 'crashed', exitCode: 99 })
+          const details = { reason: 'crashed', exitCode: 99 }
+          app.emit('render-process-gone', {}, event.sender, details)
+          event.sender.emit('render-process-gone', {}, details)
         } else if (kind === 'child') {
           app.emit('child-process-gone', {}, {
             type: 'Utility',
@@ -361,9 +379,20 @@ function startup(): void {
         }
       }
     )
+    handleTrusted(IPC_CHANNELS.e2eRecoveryState, (event) => {
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (!win) throw new Error('対象ウィンドウが見つからない')
+      return getRecoveryState(win)
+    })
   }
 
   createWindow()
+
+  if (process.env.APP_E2E_FATAL_MAIN === '1') {
+    setImmediate(() => {
+      throw new Error('E2E確認用 main fatal token=fatal-secret')
+    })
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
