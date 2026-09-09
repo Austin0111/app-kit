@@ -49,6 +49,8 @@ node scripts/create-app.mjs manga-shelf --display "漫画棚"
 
 Electron 44 / electron-vite / React 18 / TypeScript / better-sqlite3 / Drizzle ORM
 
+開発環境はNode.js 22.12.0以上を使う（Vite 7、electron-vite 5、`@electron/rebuild`の共通要件）。
+
 ## セットアップ
 
 ```
@@ -60,6 +62,10 @@ npx electron-rebuild -w better-sqlite3
 **この3手順で入れること。** `--ignore-scripts`で依存導入時の任意スクリプトを止め、
 Electron本体を明示的に取得してからnative moduleを対象Electronへ揃える。
 better-sqlite3 13はN-API prebuildを同梱するが、将来native依存が増えても同じ手順を使う。
+
+`drizzle-kit`の安定版は旧`@esbuild-kit`経由で脆弱なesbuildを要求し続けているため、
+`package.json`の`overrides`でその経路だけを修正版へ固定している。削除する前に通常の
+`npm audit`と`npm run db:generate`の両方を確認すること。
 
 ```
 npm run dev         開発起動

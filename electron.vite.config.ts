@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import { defineConfig } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 
 /**
@@ -14,16 +14,14 @@ import react from '@vitejs/plugin-react'
 const APP_VERSION = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')).version
 const define = { __APP_VERSION__: JSON.stringify(APP_VERSION) }
 
-// main / preload は Node 側で動くので、依存を bundle せず external にする。
-// better-sqlite3 のようなネイティブモジュールは bundle できないため、これが必須。
+// electron-vite 5 は main / preload の依存を既定で external にする。
+// better-sqlite3 のようなネイティブモジュールは bundle できないため、この既定を維持する。
 export default defineConfig({
   main: {
-    define,
-    plugins: [externalizeDepsPlugin()]
+    define
   },
   preload: {
-    define,
-    plugins: [externalizeDepsPlugin()]
+    define
   },
   renderer: {
     define,

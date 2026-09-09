@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, symlinkSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
-test('生成した派生アプリが名前整合・型検査・buildを通る', () => {
+test('生成した派生アプリが名前整合・型検査・DB生成・buildを通る', () => {
   const root = process.cwd()
   const holder = mkdtempSync(join(tmpdir(), 'app-kit-generated-'))
   const target = join(holder, 'generated-smoke')
@@ -34,6 +34,16 @@ test('生成した派生アプリが名前整合・型検査・buildを通る', 
       cwd: target,
       stdio: 'pipe'
     })
+    execFileSync(
+      process.execPath,
+      [join(root, 'node_modules', 'drizzle-kit', 'bin.cjs'), 'generate'],
+      { cwd: target, stdio: 'pipe' }
+    )
+    const migrationDiff = execFileSync('git', ['status', '--short', '--', 'drizzle'], {
+      cwd: target,
+      encoding: 'utf8'
+    })
+    expect(migrationDiff).toBe('')
     execFileSync(
       process.execPath,
       [join(root, 'node_modules', 'electron-vite', 'bin', 'electron-vite.js'), 'build'],

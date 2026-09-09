@@ -4,6 +4,17 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.2.10] - 2026-09-10
+
+- Viteを7.3.6、electron-viteを5.0.0、React pluginを5.2.0へ更新し、開発サーバーの
+  パストラバーサル、ローカルファイル露出、依存するesbuildの応答露出を修正した
+- Drizzle Kitを安定版0.31.10へ更新した。安定版が旧loader経由で要求する脆弱な
+  esbuildだけを`overrides`で0.25系へ固定し、生成処理の互換性を検証対象にした
+- Electron Builder／rebuild配下のXML、YAML、URL、glob、tar処理などをlockfile内の
+  修正版へ更新し、開発依存を含む`npm audit`を脆弱性0件にした
+- electron-vite 5で既定化された依存external化に合わせ、非推奨の
+  `externalizeDepsPlugin()`を設定から削除した。開発環境のNode要件を22.12.0以上に明記した
+
 ## [0.2.9] - 2026-09-10
 
 - Drizzle ORMを0.45.2へ更新し、動的なSQLite識別子に引用符が含まれる場合の

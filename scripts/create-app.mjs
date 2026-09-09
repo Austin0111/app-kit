@@ -177,6 +177,8 @@ writeFileSync(
 
 ## セットアップ
 
+Node.js 22.12.0以上を使う。
+
 \`\`\`
 npm install --ignore-scripts
 node node_modules/electron/install.js
@@ -185,6 +187,10 @@ npx electron-rebuild -w better-sqlite3
 
 **この3手順で入れること。** 依存導入時の任意スクリプトを止め、Electron本体を
 明示的に取得してからnative moduleを対象Electronへ揃える。
+
+\`drizzle-kit\`の安定版が旧loader経由で要求するesbuildだけを、\`package.json\`の
+\`overrides\`で修正版へ固定している。解除前に\`npm audit\`と
+\`npm run db:generate\`の両方を確認すること。
 
 \`\`\`
 npm run dev       開発起動
