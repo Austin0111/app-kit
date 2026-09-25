@@ -1,6 +1,6 @@
 {
   "name": "app-kit",
-  "version": "0.2.10",
+  "version": "0.3.0",
   "description": "新規デスクトップアプリの雛形（electron-vite + React + TypeScript + better-sqlite3 + Drizzle）",
   "main": "./out/main/index.js",
   "author": "Austin",
@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "electron-vite dev",
+    "gallery": "vite src/renderer --host 127.0.0.1 --port 5174",
     "build": "electron-vite build && npm run check:names",
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit",

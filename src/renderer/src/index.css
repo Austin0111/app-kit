@@ -361,6 +361,10 @@ input[type='color'] {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
+}
+
 /* ── ダイアログ ── */
 .dialog {
   padding: 0;

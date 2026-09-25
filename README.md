@@ -20,6 +20,13 @@ node scripts/create-app.mjs manga-shelf --display "漫画棚"
 
 既存アプリを触る話ではない。雛形からの新規作成のためのもの。
 
+## Motion Gallery
+
+`npm run gallery`で開発用Galleryを起動し、`http://127.0.0.1:5174/gallery.html`を開く。
+Motionの分類、用途、通常/Reduced比較、Replay、コード例を確認できる。
+Motion Systemは派生アプリに含まれ、Gallery UIは生成時に除外される。
+選択と昇格のルールは[docs/ui-motion.md](docs/ui-motion.md)を参照。
+
 ## 名前の決まり
 
 `src/shared/app-meta.ts` が唯一の出所。**表示名と内部識別子を分離**してあるので、

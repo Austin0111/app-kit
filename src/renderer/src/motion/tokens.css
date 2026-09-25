@@ -1,0 +1,40 @@
+:root {
+  --ak-motion-duration-instant: 1ms;
+  --ak-motion-duration-fast: 120ms;
+  --ak-motion-duration-standard: 150ms;
+  --ak-motion-duration-emphasis: 200ms;
+  --ak-motion-duration-layout: 260ms;
+  --ak-motion-duration-feedback-long: 700ms;
+  --ak-motion-duration-toast-compact: 140ms;
+  --ak-motion-duration-toast-exit: 180ms;
+  --ak-motion-ease-standard: ease;
+  --ak-motion-ease-out: ease-out;
+  --ak-motion-ease-emphasis: cubic-bezier(.22, .8, .24, 1);
+  --ak-motion-distance-subtle: 4px;
+  --ak-motion-distance-compact: 6px;
+  --ak-motion-distance-toast: 12px;
+  --ak-motion-distance-toast-exit: 8px;
+}
+
+/* The same contract is used by the OS preference and Gallery's local override. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ak-motion-duration-fast: 1ms;
+    --ak-motion-duration-standard: 1ms;
+    --ak-motion-duration-emphasis: 1ms;
+    --ak-motion-duration-layout: 1ms;
+    --ak-motion-duration-feedback-long: 1ms;
+    --ak-motion-duration-toast-compact: 1ms;
+    --ak-motion-duration-toast-exit: 1ms;
+  }
+}
+
+[data-ak-motion='reduce'] {
+  --ak-motion-duration-fast: 1ms;
+  --ak-motion-duration-standard: 1ms;
+  --ak-motion-duration-emphasis: 1ms;
+  --ak-motion-duration-layout: 1ms;
+  --ak-motion-duration-feedback-long: 1ms;
+  --ak-motion-duration-toast-compact: 1ms;
+  --ak-motion-duration-toast-exit: 1ms;
+}

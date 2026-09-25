@@ -1,0 +1,54 @@
+:root { color-scheme: dark; font: 14px/1.5 system-ui, sans-serif; background: #15191f; color: #edf1f4; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button { font: inherit; cursor: pointer; color: inherit; background: #263449; border: 1px solid #43566f; border-radius: 7px; padding: 8px 11px; }
+button:focus-visible { outline: 2px solid #9bc8ff; outline-offset: 2px; }
+.mg-page { max-width: 1440px; margin: auto; padding: 24px; }
+.mg-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; border-bottom: 1px solid #354253; padding-bottom: 18px; }
+.mg-header h1 { margin: 2px 0 4px; font-size: 27px; }
+.mg-header p { margin: 0; color: #b5c3d0; }
+.mg-eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 11px; }
+.mg-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 24px; margin-top: 20px; }
+.mg-nav { display: grid; align-content: start; gap: 16px; }
+.mg-nav h2 { font-size: 12px; color: #94a9bb; text-transform: uppercase; letter-spacing: .1em; }
+.mg-nav button { display: block; width: 100%; margin: 4px 0; text-align: left; background: transparent; border-color: transparent; overflow-wrap: anywhere; }
+.mg-nav button.is-selected { border-color: #7eaee0; background: #20354d; }
+.mg-detail { min-width: 0; padding: 22px; border: 1px solid #354253; border-radius: 12px; background: #1b232d; }
+.mg-detail-head { display: flex; justify-content: space-between; gap: 12px; align-items: end; }
+.mg-detail-head h2 { margin: 8px 0 0; font-size: 22px; overflow-wrap: anywhere; }
+.mg-detail-head small { color: #94a9bb; }
+.mg-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.mg-tags span { background: #2b4056; border-radius: 99px; padding: 2px 9px; font-size: 12px; }
+.mg-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
+.mg-stage { min-height: 180px; padding: 14px; border: 1px solid #46566a; border-radius: 8px; display: grid; align-content: start; justify-items: start; gap: 20px; overflow: hidden; }
+.mg-stage-label { color: #a9bed0; font-size: 12px; font-weight: bold; }
+.mg-sample { background: #33465b; border: 1px solid #6b829a; border-radius: 8px; padding: 14px; max-width: 100%; }
+.mg-sample img { display: block; width: 180px; max-width: 100%; border-radius: 5px; }
+.mg-sample span { display: block; margin-top: 8px; }
+.mg-toast { box-shadow: 0 6px 20px #0005; }
+.mg-toast-variants { margin-top: 18px; }
+.mg-toast-variant-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.mg-toast-variant-grid > div { min-width: 0; border: 1px solid #46566a; padding: 12px; border-radius: 8px; }
+.mg-toast-variant-grid p { color: #a9bed0; margin: 4px 0 16px; }
+.mg-toast-variant-grid .mg-toast { display: inline-block; padding: 8px; background: #33465b; border-radius: 6px; }
+.mg-segments { position: relative; display: flex; border: 1px solid #58708a; border-radius: 7px; padding: 3px; }
+.mg-segments button { z-index: 1; width: 84px; background: transparent; border: 0; }
+.mg-segments .ak-motion-segment-indicator { position: absolute; width: 84px; height: calc(100% - 6px); border-radius: 5px; background: #49678a; }
+.mg-switch { display: flex; align-items: center; gap: 7px; min-width: 98px; }
+.mg-switch[data-on='true'] { background: #386a55; }
+.mg-switch .ak-motion-toggle-thumb { display: inline-block; width: 15px; height: 15px; border-radius: 50%; background: #fff; }
+.mg-image { display: grid; gap: 8px; }.mg-image img { width: 180px; max-width: 100%; }
+.mg-facts { display: grid; grid-template-columns: 130px 1fr; gap: 8px 14px; margin-top: 22px; }
+.mg-facts dt { color: #a9bed0; }.mg-facts dd { margin: 0; }
+pre { overflow: auto; background: #101820; border-radius: 8px; padding: 14px; }
+.mg-note, .mg-pending { color: #bad1e5; }
+@media (max-width: 740px) {
+  .mg-layout { grid-template-columns: 1fr; }
+  .mg-nav { display: flex; flex-wrap: wrap; gap: 5px; }
+  .mg-nav > div { display: contents; }
+  .mg-nav h2 { flex-basis: 100%; margin: 8px 0 0; }
+  .mg-nav button { display: inline-block; width: auto; margin: 0; border-color: #354253; }
+  .mg-compare { grid-template-columns: 1fr; }
+  .mg-toast-variant-grid { grid-template-columns: 1fr; }
+  .mg-detail-head { align-items: start; flex-direction: column; }
+}

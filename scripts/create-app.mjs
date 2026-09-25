@@ -34,6 +34,10 @@ const TEMPLATE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 // 複製しないもの。生成物と、雛形固有の履歴
 const SKIP = new Set(['node_modules', 'out', 'dist', 'test-results', '.git'])
+const DEVELOPMENT_ONLY = new Set([
+  'src/renderer/gallery.html',
+  'src/renderer/gallery'
+])
 
 // ---------------------------------------------------------------- 引数
 
@@ -85,7 +89,8 @@ cpSync(TEMPLATE_ROOT, targetDir, {
   filter: (src) => {
     const rel = src.slice(TEMPLATE_ROOT.length + 1)
     if (!rel) return true
-    return !SKIP.has(rel.split(/[\\/]/)[0])
+    const normalized = rel.replace(/\\/g, '/')
+    return !SKIP.has(rel.split(/[\\/]/)[0]) && !DEVELOPMENT_ONLY.has(normalized)
   }
 })
 
@@ -132,6 +137,7 @@ replaceIn('src/renderer/index.html', [['<title>app-kit</title>', `<title>${displ
   pkg.description = `${displayName}`
   pkg.build.appId = appId
   pkg.build.productName = displayName
+  delete pkg.scripts['gallery']
   writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n')
   console.log(`  package.json … name / version / description / appId / productName`)
 }

@@ -5,6 +5,8 @@ import { UiProvider } from './ui'
 import { DISPLAY_NAME } from '../../shared/app-meta'
 import { installRendererErrorLogging } from './log'
 import './index.css'
+import './motion/tokens.css'
+import './motion/presets.css'
 
 // 画面側の例外を記録に残す（DevTools を開かないと分からない状態にしない）
 installRendererErrorLogging()

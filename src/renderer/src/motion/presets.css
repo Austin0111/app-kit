@@ -1,0 +1,84 @@
+.ak-motion-panel-media-safe {
+  animation: ak-motion-fade-in var(--ak-motion-duration-standard) var(--ak-motion-ease-standard) both;
+}
+.ak-motion-panel-enter-subtle {
+  animation: ak-motion-subtle-in var(--ak-motion-duration-standard) var(--ak-motion-ease-standard) both;
+}
+.ak-motion-toast-compact {
+  animation: ak-motion-toast-compact-in var(--ak-motion-duration-toast-compact) var(--ak-motion-ease-out) both;
+}
+.ak-motion-toast-rise-in {
+  animation: ak-motion-toast-rise-in var(--ak-motion-duration-emphasis) var(--ak-motion-ease-standard) both;
+}
+.ak-motion-toast-drop-out {
+  animation: ak-motion-toast-drop-out var(--ak-motion-duration-toast-exit) var(--ak-motion-ease-standard) both;
+}
+.ak-motion-accordion {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows var(--ak-motion-duration-layout) var(--ak-motion-ease-emphasis),
+    opacity var(--ak-motion-duration-standard) var(--ak-motion-ease-standard);
+}
+.ak-motion-accordion[data-open='true'] { grid-template-rows: 1fr; opacity: 1; }
+.ak-motion-accordion > .ak-motion-accordion-content { min-height: 0; overflow: hidden; }
+.ak-motion-caret { display: inline-block; transition: transform var(--ak-motion-duration-layout) var(--ak-motion-ease-emphasis); }
+.ak-motion-caret[data-open='true'] { transform: rotate(90deg); }
+.ak-motion-segment-indicator {
+  transition: transform var(--ak-motion-duration-layout) var(--ak-motion-ease-emphasis);
+}
+.ak-motion-toggle-thumb {
+  transition: transform var(--ak-motion-duration-standard) var(--ak-motion-ease-standard);
+}
+.ak-motion-toggle-thumb[data-on='true'] { transform: translateX(20px); }
+.ak-motion-card-lift {
+  transition: transform var(--ak-motion-duration-fast) var(--ak-motion-ease-standard),
+    box-shadow var(--ak-motion-duration-fast) var(--ak-motion-ease-standard);
+}
+.ak-motion-card-lift:is(:hover, :focus-visible) { transform: translateY(-2px); box-shadow: 0 8px 20px rgb(0 0 0 / 20%); }
+.ak-motion-image-first-paint.is-animating {
+  animation: ak-motion-fade-in var(--ak-motion-duration-layout) var(--ak-motion-ease-standard) both;
+}
+
+@keyframes ak-motion-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ak-motion-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes ak-motion-subtle-in { from { opacity: 0; transform: translateY(var(--ak-motion-distance-subtle)); } to { opacity: 1; transform: none; } }
+@keyframes ak-motion-toast-compact-in { from { opacity: 0; transform: translateY(var(--ak-motion-distance-compact)); } to { opacity: 1; transform: none; } }
+@keyframes ak-motion-toast-rise-in { from { opacity: 0; transform: translateY(var(--ak-motion-distance-toast)); } to { opacity: 1; transform: none; } }
+@keyframes ak-motion-toast-drop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(var(--ak-motion-distance-toast-exit)); } }
+
+/* Reduced mode preserves state changes but removes spatial motion. */
+@media (prefers-reduced-motion: reduce) {
+  .ak-motion-panel-enter-subtle, .ak-motion-toast-compact, .ak-motion-toast-rise-in { animation-name: ak-motion-fade-in; }
+  .ak-motion-toast-drop-out { animation-name: ak-motion-fade-out; }
+  .ak-motion-caret[data-open='true'], .ak-motion-toggle-thumb[data-on='true'] { transform: none; }
+  .ak-motion-card-lift:is(:hover, :focus-visible) { transform: none; }
+  :root { scroll-behavior: auto !important; }
+}
+[data-ak-motion='reduce'] .ak-motion-panel-enter-subtle,
+[data-ak-motion='reduce'] .ak-motion-toast-compact,
+[data-ak-motion='reduce'] .ak-motion-toast-rise-in { animation-name: ak-motion-fade-in; }
+[data-ak-motion='reduce'] .ak-motion-toast-drop-out { animation-name: ak-motion-fade-out; }
+[data-ak-motion='reduce'] .ak-motion-caret[data-open='true'],
+[data-ak-motion='reduce'] .ak-motion-toggle-thumb[data-on='true'],
+[data-ak-motion='reduce'] .ak-motion-card-lift:is(:hover, :focus-visible) { transform: none; }
+[data-ak-motion='reduce'] { scroll-behavior: auto !important; }
+
+/* Gallery's normal lane deliberately remains normal even when the OS prefers reduce. */
+@media (prefers-reduced-motion: reduce) {
+  [data-ak-motion='normal'] {
+    --ak-motion-duration-fast: 120ms;
+    --ak-motion-duration-standard: 150ms;
+    --ak-motion-duration-emphasis: 200ms;
+    --ak-motion-duration-layout: 260ms;
+    --ak-motion-duration-toast-compact: 140ms;
+    --ak-motion-duration-toast-exit: 180ms;
+  }
+  [data-ak-motion='normal'] .ak-motion-panel-enter-subtle { animation-name: ak-motion-subtle-in; }
+  [data-ak-motion='normal'] .ak-motion-toast-compact { animation-name: ak-motion-toast-compact-in; }
+  [data-ak-motion='normal'] .ak-motion-toast-rise-in { animation-name: ak-motion-toast-rise-in; }
+  [data-ak-motion='normal'] .ak-motion-toast-drop-out { animation-name: ak-motion-toast-drop-out; }
+  [data-ak-motion='normal'] .ak-motion-caret[data-open='true'] { transform: rotate(90deg); }
+  [data-ak-motion='normal'] .ak-motion-toggle-thumb[data-on='true'] { transform: translateX(20px); }
+  [data-ak-motion='normal'] .ak-motion-card-lift:is(:hover, :focus-visible) { transform: translateY(-2px); }
+}

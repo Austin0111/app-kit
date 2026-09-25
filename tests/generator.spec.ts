@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { execFileSync } from 'child_process'
-import { mkdtempSync, readFileSync, rmSync, symlinkSync } from 'fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
@@ -21,6 +21,11 @@ test('生成した派生アプリが名前整合・型検査・DB生成・build�
     expect(pkg).toMatchObject({ name: 'generated-smoke', version: '0.1.0' })
     expect(lock).toMatchObject({ name: 'generated-smoke', version: '0.1.0' })
     expect(lock.packages['']).toMatchObject({ name: 'generated-smoke', version: '0.1.0' })
+    expect(pkg.scripts.gallery).toBeUndefined()
+    expect(existsSync(join(target, 'src/renderer/gallery.html'))).toBe(false)
+    expect(existsSync(join(target, 'src/renderer/gallery'))).toBe(false)
+    expect(existsSync(join(target, 'src/renderer/src/motion/presets.css'))).toBe(true)
+    expect(existsSync(join(target, 'src/renderer/src/motion/registry.ts'))).toBe(true)
 
     // 依存導入そのものではなく生成物を検査する。既存node_modulesをjunctionで共有し、
     // npm installによるネットワーク・lockfile書換え・native rebuildを試験から排除する。

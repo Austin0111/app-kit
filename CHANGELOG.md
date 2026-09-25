@@ -4,6 +4,12 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.3.0] - 2026-09-26
+
+- 意味名のMotion token、画面種別ごとの安全分類、Reduced Motion共通契約、代表Presetと初回画像表示Behaviorを追加した
+- 開発用Motion Galleryで通常・Reduced比較、Replay、Toastの既存版とVideoDeck版の比較を可能にした
+- 生成アプリにはMotion本体を含め、GalleryのページとUIを含めないようにした
+
 ## [0.2.10] - 2026-09-10
 
 - Viteを7.3.6、electron-viteを5.0.0、React pluginを5.2.0へ更新し、開発サーバーの
