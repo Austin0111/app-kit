@@ -36,7 +36,9 @@ const TEMPLATE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SKIP = new Set(['node_modules', 'out', 'dist', 'test-results', '.git'])
 const DEVELOPMENT_ONLY = new Set([
   'src/renderer/gallery.html',
-  'src/renderer/gallery'
+  'src/renderer/gallery',
+  'src/renderer/component-gallery.html',
+  'src/renderer/component-gallery'
 ])
 
 // ---------------------------------------------------------------- 引数

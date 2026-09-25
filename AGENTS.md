@@ -20,6 +20,7 @@
 ## app-kit 固有事項
 
 - 新しいUI Motionは `docs/ui-motion.md` の Motion Standard Policy に従う。不要なら動かさず、必要ならCoreを先に選ぶ。新規候補はLabで比較し、VideoDeck固有のRecipeを無条件に移植しない。
+- 新しいUIでは `docs/ui-components.md` の標準Componentを先に確認し、既存の用途・Surfaceに合うものを再利用する。
 
 - 依存導入は README の順序どおり `npm install --ignore-scripts`、`node node_modules/electron/install.js`、`npx electron-rebuild -w better-sqlite3` を使う。
 - 雛形からアプリを作る前に `scripts/create-app.mjs` と README 末尾の注意事項を確認する。

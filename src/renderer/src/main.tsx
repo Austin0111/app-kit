@@ -7,6 +7,7 @@ import { installRendererErrorLogging } from './log'
 import './index.css'
 import './motion/tokens.css'
 import './motion/presets.css'
+import './ui/components.css'
 
 // 画面側の例外を記録に残す（DevTools を開かないと分からない状態にしない）
 installRendererErrorLogging()

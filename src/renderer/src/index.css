@@ -68,6 +68,7 @@ section {
   color: #fff;
   text-decoration: none;
 }
+.design-system__link + .design-system__link { margin: 8px 0 0 8px; }
 
 .design-system__link:focus-visible {
   outline: 2px solid var(--fg);

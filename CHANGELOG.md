@@ -4,6 +4,12 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.4.0] - 2026-09-26
+
+- Accordion、Toggle、Panel、Cardを標準Componentとして追加し、既存Core MotionとSurface Safety・Reduced Motion Contractへ接続した
+- 開発専用Component Galleryで状態、Surface、通常／Reducedを比較できるようにした
+- 生成アプリにはComponentとMotionを含め、Component GalleryとMotion Galleryの開発UIを除外した
+
 ## [0.3.3] - 2026-09-26
 
 - app-kitのUI開発フローに実装後のFigma Design Review条件とReview結果の反映手順を追加した

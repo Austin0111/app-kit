@@ -24,9 +24,16 @@ test('生成した派生アプリが名前整合・型検査・DB生成・build�
     expect(pkg.scripts.gallery).toBeUndefined()
     expect(existsSync(join(target, 'src/renderer/gallery.html'))).toBe(false)
     expect(existsSync(join(target, 'src/renderer/gallery'))).toBe(false)
+    expect(existsSync(join(target, 'src/renderer/component-gallery.html'))).toBe(false)
+    expect(existsSync(join(target, 'src/renderer/component-gallery'))).toBe(false)
     expect(readFileSync(join(target, 'src/shared/app-meta.ts'), 'utf8')).toContain('export const IS_TEMPLATE = false')
     expect(existsSync(join(target, 'src/renderer/src/motion/presets.css'))).toBe(true)
     expect(existsSync(join(target, 'src/renderer/src/motion/registry.ts'))).toBe(true)
+    expect(existsSync(join(target, 'src/renderer/src/ui/Accordion.tsx'))).toBe(true)
+    expect(existsSync(join(target, 'src/renderer/src/ui/Toggle.tsx'))).toBe(true)
+    expect(existsSync(join(target, 'src/renderer/src/ui/Panel.tsx'))).toBe(true)
+    expect(existsSync(join(target, 'src/renderer/src/ui/Card.tsx'))).toBe(true)
+    expect(existsSync(join(target, 'src/renderer/src/ui/components.css'))).toBe(true)
 
     // 依存導入そのものではなく生成物を検査する。既存node_modulesをjunctionで共有し、
     // npm installによるネットワーク・lockfile書換え・native rebuildを試験から排除する。

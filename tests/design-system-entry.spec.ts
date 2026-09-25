@@ -41,6 +41,14 @@ test('開発画面のDesign Systemから既存Motion Galleryを開ける', async
     await gallery.setViewportSize({ width: 640, height: 780 })
     expect(await gallery.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await gallery.screenshot({ path: join('test-results', 'screenshots', 'design-system-gallery-narrow.png') })
+    const componentPopup = ctx.app.waitForEvent('window')
+    await page.getByRole('link', { name: '標準Componentの見本帳を開く' }).click()
+    const componentGallery = await componentPopup
+    componentGallery.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
+    componentGallery.on('pageerror', (error) => errors.push(String(error)))
+    await expect(componentGallery.getByRole('heading', { name: '標準Componentの見本帳' })).toBeVisible()
+    expect(new URL(componentGallery.url()).pathname).toBe('/component-gallery.html')
+    expect(await componentGallery.evaluate(() => 'api' in window)).toBe(false)
     expect(ctx.consoleErrors).toEqual([])
     expect(errors).toEqual([])
   } finally {
@@ -54,6 +62,7 @@ test('通常ビルドの画面には開発用入口を表示しない', async ()
   try {
     await expect(ctx.page.getByRole('heading', { name: 'デザインシステム' })).toHaveCount(0)
     await expect(ctx.page.getByRole('link', { name: '動きの見本帳（Motion Gallery）を開く' })).toHaveCount(0)
+    await expect(ctx.page.getByRole('link', { name: '標準Componentの見本帳を開く' })).toHaveCount(0)
     expect(ctx.consoleErrors).toEqual([])
   } finally {
     await ctx.close()

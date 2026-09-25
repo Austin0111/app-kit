@@ -163,6 +163,9 @@ export default function App(): JSX.Element {
               <a className="design-system__link" href="/gallery.html" target="_blank" rel="noopener noreferrer">
                 動きの見本帳（Motion Gallery）を開く
               </a>
+              <a className="design-system__link" href="/component-gallery.html" target="_blank" rel="noopener noreferrer">
+                標準Componentの見本帳を開く
+              </a>
             </section>
           )}
 

@@ -33,15 +33,15 @@ OSの`prefers-reduced-motion: reduce`を標準契約とする。translate・scal
 
 ## 標準Componentとの対応
 
-現在のapp-kitの共通UIはTitleBar・VersionBadge・Dialog・Toastなどで、Accordion・Switch型Toggle・画像入りPanel・Cardは共通Componentとしては未実装。新たにそれらを設ける際は次を既定候補にする。ただし画面に出すだけでMotionを強制せず、Surfaceと必要性を先に確認する。
+Accordion・Switch型Toggle・Panel・Cardは `docs/ui-components.md` の標準Componentとして実装済み。画面に出すだけでMotionを強制せず、Surfaceと必要性を先に確認する。
 
 | Component / 用途 | Core候補 | 現在の扱い |
 |---|---|---|
-| Accordion | AccordionReveal + DisclosureCaret | 共通Component未実装。展開状態を文字・ARIAでも示す。 |
-| Switch型Toggle | ToggleThumbSlide | 共通Component未実装。現行設定ボタンはこの形ではない。 |
-| 画像入りPanel | PanelFadeInMediaSafe | 共通Component未実装。画像本体を動かさない。 |
-| テキスト中心Panel | PanelEnterSubtle | 共通Component未実装。表示切替に必要な時だけ使用。 |
-| 操作可能なテキスト中心Card | CardLiftSubtle | 共通Component未実装。画像カードへ無条件適用しない。 |
+| Accordion | AccordionReveal + DisclosureCaret | 開閉時に使用。DOMを保持し、展開状態を文字・ARIAでも示す。 |
+| Switch型Toggle | ToggleThumbSlide | 切替時に使用。現行設定ボタンはこの形へ一括置換しない。 |
+| 画像入りPanel | PanelFadeInMediaSafe | `motion="enter"` 時のみ使用。画像本体を動かさない。 |
+| テキスト中心Panel | PanelEnterSubtle | `motion="enter"` 時のみ使用。 |
+| 操作可能なテキスト中心Card | CardLiftSubtle | Standardかつinteractive時のみ使用。画像入りや静的Cardには適用しない。 |
 | Toast | ToastEnterCompact / ToastRiseIn等 | 現行Toastは既存値を維持。Galleryの比較結果をOWNERが評価するまで統一しない。 |
 | Dialog / TitleBar / VersionBadge | 対応Coreなし | 現行動作を維持。Dialog ExitはLab。 |
 
@@ -49,7 +49,7 @@ OSの`prefers-reduced-motion: reduce`を標準契約とする。translate・scal
 
 rendererの`main.tsx`がtokensとpresetsを読み込む。必要な箇所に`ak-motion-*`クラスを指定する。画像の初回表示は`ImageFirstPaint`をimportする。registryのコード例・用途・避ける場面を確認する。
 
-雛形app-kitを`npm run dev`で開いたら、画面の「デザインシステム」→「動きの見本帳（Motion Gallery）を開く」から既存Galleryを別窓で開ける。単独閲覧には引き続き`npm run gallery`と`http://127.0.0.1:5174/gallery.html`を使える。「両方再生」で通常/動きを抑える比較を同時にやり直せる。日本語名と正式IDはregistryのメタデータから表示し、詳細の「IDをコピー」で指示用の正式IDを取得できる。生成アプリではこのscriptとGallery UIを除外し、Motion本体と本書を引き継ぐ。入口も雛形の開発画面でのみ表示する。
+雛形app-kitを`npm run dev`で開いたら、画面の「デザインシステム」→「動きの見本帳（Motion Gallery）を開く」から既存Galleryを別窓で開ける。単独閲覧には引き続き`npm run gallery`と`http://127.0.0.1:5174/gallery.html`を使える。「両方再生」で通常/動きを抑える比較を同時にやり直せる。日本語名と正式IDはregistryのメタデータから表示し、詳細の「IDをコピー」で指示用の正式IDを取得できる。生成アプリではGallery UIを除外し、Motion本体と本書を引き継ぐ。入口も雛形の開発画面でのみ表示する。
 
 Toastの既存表示とDialogの即時closeはv1で変更しない。ToastのVideoDeck版は比較用。Dialog Exitはclosing stateからanimation終了後にnative closeするBehaviorとしてLabに置く。
 

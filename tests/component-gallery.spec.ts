@@ -1,0 +1,72 @@
+import { expect, test } from '@playwright/test'
+import { createServer } from 'vite'
+import { join } from 'path'
+import { mkdirSync } from 'fs'
+import { launchApp } from './helpers'
+
+test('標準Componentは状態・Surface・Reducedを表示し、キーボードで操作できる', async () => {
+  const server = await createServer({ root: join(process.cwd(), 'src/renderer'), configFile: false, server: { host: '127.0.0.1', port: 0 } })
+  await server.listen()
+  const address = server.httpServer?.address()
+  if (!address || typeof address === 'string') throw new Error('Component Gallery server did not start')
+  const ctx = await launchApp()
+  try {
+    const windowPromise = ctx.app.waitForEvent('window')
+    await ctx.app.evaluate(async ({ BrowserWindow }, url) => {
+      const window = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true } })
+      await window.loadURL(url)
+    }, `http://127.0.0.1:${address.port}/component-gallery.html`)
+    const page = await windowPromise
+    const errors: string[] = []
+    page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
+    page.on('pageerror', (error) => errors.push(String(error)))
+    await expect(page.getByRole('heading', { name: '標準Componentの見本帳' })).toBeVisible()
+    const normal = page.getByLabel('通常の動き')
+    const reduced = page.getByLabel('動きを抑える')
+    const disclosure = normal.getByRole('button', { name: /詳細を表示/ })
+    await expect(disclosure).toHaveAttribute('aria-expanded', 'false')
+    await disclosure.focus()
+    expect(await disclosure.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid')
+    await page.keyboard.press('Enter')
+    await expect(disclosure).toHaveAttribute('aria-expanded', 'true')
+    await expect(normal.getByRole('button', { name: '補足操作' })).toBeVisible()
+    await page.keyboard.press('Space')
+    await expect(disclosure).toHaveAttribute('aria-expanded', 'false')
+    expect(await normal.getByText('開いている間、内容へTabで移動できます。').evaluate((el) => el.closest('[role="region"]')?.inert)).toBe(true)
+    await expect(normal.getByRole('button', { name: '利用できない項目' })).toBeDisabled()
+    await page.getByRole('button', { name: 'Toggle toggle' }).click()
+    const toggle = normal.getByRole('switch', { name: '通知を受け取る' })
+    await toggle.focus()
+    await page.keyboard.press('Space')
+    await expect(toggle).toHaveAttribute('aria-checked', 'true')
+    await expect(toggle.locator('.ak-ui-toggle__state')).toHaveText('オン')
+    await expect(normal.getByRole('switch', { name: '管理者が設定' })).toBeDisabled()
+    expect(await reduced.getByRole('switch', { name: '管理者が設定' }).locator('.ak-motion-toggle-thumb').evaluate((el) => getComputedStyle(el).transform)).toBe('none')
+    await page.getByRole('button', { name: 'Panel panel' }).click()
+    expect(await normal.locator('[data-surface="standard"]').evaluate((el) => getComputedStyle(el).animationName)).toBe('ak-motion-subtle-in')
+    expect(await normal.locator('[data-surface="media-safe"]').evaluate((el) => getComputedStyle(el).animationName)).toBe('ak-motion-fade-in')
+    expect(await normal.locator('[data-surface="opaque-media"]').evaluate((el) => getComputedStyle(el).animationName)).toBe('none')
+    expect(await reduced.locator('[data-surface="standard"]').evaluate((el) => getComputedStyle(el).animationName)).toBe('ak-motion-fade-in')
+    await page.getByRole('button', { name: '登場を再生' }).click()
+    await page.getByRole('button', { name: 'Card card' }).click()
+    expect(await normal.locator('.ak-ui-card:not(button)').count()).toBe(1)
+    expect(await normal.locator('[data-surface="media-safe"].ak-ui-card').evaluate((el) => getComputedStyle(el).transform)).toBe('none')
+    await expect(normal.getByRole('button', { name: /Disabled/ })).toBeDisabled()
+    await page.keyboard.press('Tab')
+    await normal.getByRole('button', { name: /Interactive \/ Standard/ }).focus()
+    expect(await normal.getByRole('button', { name: /Interactive \/ Standard/ }).evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid')
+    await page.keyboard.press('Enter')
+    await expect(normal.getByText('選択しました')).toBeVisible()
+    mkdirSync(join('test-results', 'screenshots'), { recursive: true })
+    await page.setViewportSize({ width: 1100, height: 850 })
+    await page.screenshot({ path: join('test-results', 'screenshots', 'component-gallery.png') })
+    await page.setViewportSize({ width: 640, height: 780 })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await page.screenshot({ path: join('test-results', 'screenshots', 'component-gallery-narrow.png') })
+    expect(ctx.consoleErrors).toEqual([])
+    expect(errors).toEqual([])
+  } finally {
+    await ctx.close()
+    await server.close()
+  }
+})

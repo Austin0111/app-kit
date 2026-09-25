@@ -137,20 +137,22 @@ function createWindow(): void {
 
   if (bounds?.maximized) win.maximize()
   lockDownWebContents(win.webContents)
-  // 雛形の開発サーバー内にある既存Galleryだけを別窓で許可する。
+  // 雛形の開発サーバー内にある2つのGalleryだけを別窓で許可する。
   // 通常の遷移・任意のwindow.openはsecurity.tsの既定拒否を維持する。
   if (IS_TEMPLATE && !app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
     const galleryUrl = new URL('gallery.html', process.env['ELECTRON_RENDERER_URL']).href
+    const componentGalleryUrl = new URL('component-gallery.html', process.env['ELECTRON_RENDERER_URL']).href
+    const galleryUrls = new Set([galleryUrl, componentGalleryUrl])
     win.webContents.setWindowOpenHandler(({ url }) =>
-      url === galleryUrl
+      galleryUrls.has(url)
         ? { action: 'allow', overrideBrowserWindowOptions: {
             show: false,
             webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true }
           } }
         : { action: 'deny' }
     )
-    win.webContents.on('did-create-window', (child) => {
-      lockDownWebContents(child.webContents, galleryUrl)
+    win.webContents.on('did-create-window', (child, details) => {
+      lockDownWebContents(child.webContents, details.url)
       child.removeMenu()
       child.once('ready-to-show', () =>
         process.env.APP_E2E === '1' ? child.showInactive() : child.show()
