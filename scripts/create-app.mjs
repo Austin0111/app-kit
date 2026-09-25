@@ -131,6 +131,19 @@ replaceIn('src/main/update-check.ts', [[`const REPO = 'app-kit'`, `const REPO = 
 
 replaceIn('src/renderer/index.html', [['<title>app-kit</title>', `<title>${displayName}</title>`]])
 
+// app-kit専用Figma Fileの参照を派生アプリへ持ち込まない。
+// Review手順は引き継ぎ、派生先で製品固有のFileを記録できる形にする。
+{
+  const path = join(targetDir, 'docs/ui-design-review.md')
+  const text = readFileSync(path, 'utf8')
+  const start = '<!-- APP_KIT_REVIEW_FILE_START -->'
+  const end = '<!-- APP_KIT_REVIEW_FILE_END -->'
+  const first = text.indexOf(start)
+  const last = text.indexOf(end)
+  if (first < 0 || last < first) fail('UI Review Fileの境界が見つからない')
+  writeFileSync(path, text.slice(0, first) + `## ${displayName}専用Review File\n\n派生アプリにはapp-kitのFigma Fileを引き継がない。初回のsubstantial UI workで製品固有のReview Fileを確認・作成し、URLとfileKeyをここへ記録する。\n` + text.slice(last + end.length))
+}
+
 // package.json は構造を壊さないよう JSON として扱う
 {
   const path = join(targetDir, 'package.json')

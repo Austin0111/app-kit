@@ -1,10 +1,30 @@
-# UI Design Review / Figma Integration v1
+# UI Design Review / Figma Capture Workflow v1
 
-この文書は `AGENTS.md` のUI開発フローにおけるReview方法を定める。Motionの分類・安全性・値・昇格条件は [ui-motion.md](ui-motion.md) を参照し、ここでは重複定義しない。
+この文書は `AGENTS.md` のUI開発フローにおけるReview File、実画面Capture、Review方法を定める。Componentの用途は [ui-components.md](ui-components.md)、Motionの分類・安全性・値・昇格条件は [ui-motion.md](ui-motion.md) を正本とし、ここでは重複定義しない。
+
+<!-- APP_KIT_REVIEW_FILE_START -->
+## app-kit専用Review File
+
+- 名前: **Proofline App Kit - Design Review**
+- URL: https://www.figma.com/design/AAJ0mwevHzAmjBHv9W20ok/Proofline-App-Kit---Design-Review
+- fileKey: `AAJ0mwevHzAmjBHv9W20ok`
+
+新しいUI変更ごとにFileを作り直さず、このFileへCaptureを追加する。URLとfileKeyは通常の参照情報であり、認証情報は保存しない。派生アプリは製品固有のReview Fileを使う。
+<!-- APP_KIT_REVIEW_FILE_END -->
 
 ## 発動条件と位置付け
 
-新規画面、大規模なレイアウト変更、新規Reusable Component、大幅なVisual Redesignをsubstantial UI workとする。実装後にFigma plugin / integrationが利用可能ならDesign Reviewを行い、指摘をコードへ反映して再確認する。Figmaは実装前の必須制作工程ではない。文言修正、軽微なstyle調整、見た目が変わらないrefactorにはFigma Reviewを要求しない。
+新規画面、大規模なレイアウト変更、新規Reusable Component、大幅なVisual Redesignをsubstantial UI workとする。Figmaは実装前の必須制作工程ではなく、実装後のQuality Gateである。文言修正、軽微なstyle調整、見た目が変わらないrefactorにはFigma Reviewを要求しない。
+
+## 標準Capture Workflow
+
+1. UIを実装し、通常・Reduced Motionと対象画面幅で操作を確認する。
+2. 対象画面をブラウザーで表示できる開発用localhostで起動する。app-kitの接続確認には `npm run gallery` → `http://127.0.0.1:5174/component-gallery.html` を使える。実際に表示されたURLと状態を確認する。派生アプリは製品側の開発URLを使う。
+3. Figma連携のlocalhost Capture機能で、上記のReview Fileの`fileKey`を指定し、**実際に動く画面**を取り込む。Captureが返す一時scriptとcaptureIdはその実行限りで使用し、接続情報や一時scriptをrepoへ保存しない。既存のCaptureを消さず、対象と日時が分かる名前を付ける。連携によるCaptureが使えなくてもFigmaへアクセスできる場合は、localhostの実画面を画像として貼り、画像Captureであることを明記して視覚Reviewを行える。
+4. Figma上でCapture結果を見て、下記の観点を既存Design Systemと照合する。画像だけでは操作・ARIA・Reduced Motionを判定できないため、実画面の操作確認も併用する。
+5. 指摘のうち今回の範囲に入るものをコードへ反映し、画面・テスト・必要なら再Captureで確認する。判断が必要な新規Pattern / MotionはDesign Harvest / Lab候補に留める。
+
+ElectronのpreloadやIPCに依存する画面がブラウザーのlocalhostで正常に表示できない場合、同じrendererのブラウザーで動く開発用Previewを使う。実画面を手作業で描き直してCaptureの代わりにしない。
 
 ## Reviewで確認すること
 
@@ -20,4 +40,4 @@
 
 ## Figmaを利用できない場合
 
-作業を止めず、実装画面のスクリーンショットと既存UI / Design Systemを使って同じ観点の通常Reviewを行う。完了報告には「Figma Review未実施」と利用できなかった理由を明記する。レビューで有用な新規PatternやMotionはHarvest / Lab候補として扱い、Coreへの昇格はGallery評価後に判断する。
+Figma接続、localhost Capture、対象画面のブラウザー表示ができない場合は作業を止めず、実画面のスクリーンショットと既存UI / Design Systemを使って同じ観点の通常Reviewを行う。Figma上の画像Captureは視覚Reviewには使えるが、編集可能なレイヤーや動作検証の代わりにはならない。完了報告には連携Capture・画像Capture・Figma Review・通常Reviewの実施状況と理由を分けて記す。レビューで有用な新規PatternやMotionはHarvest / Lab候補として扱い、Coreへの昇格はGallery評価後に判断する。

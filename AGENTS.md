@@ -37,7 +37,7 @@
 5. Motionが必要ならCoreを優先する。Toast比較など未確定の値はOWNER評価前に統一しない。
 6. 内容物を基準にStandard / Media Safe / Opaque MediaのSurfaceを分類し、Reduced Motionでも状態情報を残す。
 7. 実装し、通常・Reduced双方と該当する画面幅で確認する。
-8. substantial UI workでは、利用可能なFigma integrationを使って実装後のDesign Reviewを行う。利用できない場合は通常のUI reviewを行い、未実施理由を報告する。小変更には要求しない。
+8. substantial UI workでは、`docs/ui-design-review.md` のReview FileとCapture Workflowを参照し、利用可能なFigma integrationを使って実装後のDesign Reviewを行う。利用できない場合は通常のUI reviewを行い、未実施理由を報告する。小変更には要求しない。
 9. Reviewで見つけた問題をコードに反映し、再確認する。
 10. 有用な新規Pattern / MotionはLab、Gallery、Design Harvestの候補として記録し、評価前にCoreへ昇格させない。
 

@@ -4,6 +4,12 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.4.1] - 2026-09-26
+
+- app-kit専用のFigma Review Fileを登録し、localhost実画面のCaptureからReview・修正までの手順を整備した
+- Figma上の画像CaptureによるReviewで見つけたComponent Galleryの英語中心の選択名を日本語優先へ修正した
+- 派生アプリへapp-kit専用Figma FileのURL・fileKeyがコピーされないよう生成処理を調整した
+
 ## [0.4.0] - 2026-09-26
 
 - Accordion、Toggle、Panel、Cardを標準Componentとして追加し、既存Core MotionとSurface Safety・Reduced Motion Contractへ接続した

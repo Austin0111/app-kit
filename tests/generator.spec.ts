@@ -34,6 +34,10 @@ test('生成した派生アプリが名前整合・型検査・DB生成・build�
     expect(existsSync(join(target, 'src/renderer/src/ui/Panel.tsx'))).toBe(true)
     expect(existsSync(join(target, 'src/renderer/src/ui/Card.tsx'))).toBe(true)
     expect(existsSync(join(target, 'src/renderer/src/ui/components.css'))).toBe(true)
+    const reviewDoc = readFileSync(join(target, 'docs/ui-design-review.md'), 'utf8')
+    expect(reviewDoc).toContain('生成確認専用Review File')
+    expect(reviewDoc).not.toContain('AAJ0mwevHzAmjBHv9W20ok')
+    expect(reviewDoc).not.toContain('Proofline App Kit - Design Review')
 
     // 依存導入そのものではなく生成物を検査する。既存node_modulesをjunctionで共有し、
     // npm installによるネットワーク・lockfile書換え・native rebuildを試験から排除する。
