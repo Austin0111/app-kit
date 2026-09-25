@@ -4,6 +4,12 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.3.1] - 2026-09-26
+
+- Motion Galleryの主要ラベルを日本語優先にし、日本語名と正式IDを併記してIDをコピーできるようにした
+- Toastと画像入りパネルの通常／Reduced比較を維持し、MenuPopIn / MenuPopOutを小型文字メニュー向けLab候補として追加した
+- メニュー退場後のDOM削除をanimationendとfallbackで確認できるGalleryプレビューを追加した。既存UIには適用していない
+
 ## [0.3.0] - 2026-09-26
 
 - 意味名のMotion token、画面種別ごとの安全分類、Reduced Motion共通契約、代表Presetと初回画像表示Behaviorを追加した

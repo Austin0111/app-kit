@@ -8,15 +8,23 @@ button:focus-visible { outline: 2px solid #9bc8ff; outline-offset: 2px; }
 .mg-header h1 { margin: 2px 0 4px; font-size: 27px; }
 .mg-header p { margin: 0; color: #b5c3d0; }
 .mg-eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 11px; }
-.mg-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 24px; margin-top: 20px; }
+.mg-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; margin-top: 20px; }
 .mg-nav { display: grid; align-content: start; gap: 16px; }
-.mg-nav h2 { font-size: 12px; color: #94a9bb; text-transform: uppercase; letter-spacing: .1em; }
+.mg-nav h2 { font-size: 13px; color: #a9bed0; margin: 5px 0; }
+.mg-nav h2 small { font-size: 11px; font-weight: normal; }
 .mg-nav button { display: block; width: 100%; margin: 4px 0; text-align: left; background: transparent; border-color: transparent; overflow-wrap: anywhere; }
+.mg-nav button span, .mg-nav button small { display: block; }
+.mg-nav button small, .mg-toast-variant-grid small { color: #a9bed0; font-size: 11px; }
 .mg-nav button.is-selected { border-color: #7eaee0; background: #20354d; }
 .mg-detail { min-width: 0; padding: 22px; border: 1px solid #354253; border-radius: 12px; background: #1b232d; }
 .mg-detail-head { display: flex; justify-content: space-between; gap: 12px; align-items: end; }
 .mg-detail-head h2 { margin: 8px 0 0; font-size: 22px; overflow-wrap: anywhere; }
 .mg-detail-head small { color: #94a9bb; }
+.mg-detail-head .mg-internal-id { overflow-wrap: anywhere; }
+.mg-id-row { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 5px; }
+.mg-id-row code { color: #a9bed0; font-size: 12px; user-select: all; overflow-wrap: anywhere; }
+.mg-id-row button { padding: 3px 8px; font-size: 12px; }
+.mg-id-row [role='status'] { color: #b9dfca; font-size: 12px; }
 .mg-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .mg-tags span { background: #2b4056; border-radius: 99px; padding: 2px 9px; font-size: 12px; }
 .mg-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
@@ -29,6 +37,7 @@ button:focus-visible { outline: 2px solid #9bc8ff; outline-offset: 2px; }
 .mg-toast-variants { margin-top: 18px; }
 .mg-toast-variant-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .mg-toast-variant-grid > div { min-width: 0; border: 1px solid #46566a; padding: 12px; border-radius: 8px; }
+.mg-toast-variant-grid b, .mg-toast-variant-grid small { display: block; overflow-wrap: anywhere; }
 .mg-toast-variant-grid p { color: #a9bed0; margin: 4px 0 16px; }
 .mg-toast-variant-grid .mg-toast { display: inline-block; padding: 8px; background: #33465b; border-radius: 6px; }
 .mg-segments { position: relative; display: flex; border: 1px solid #58708a; border-radius: 7px; padding: 3px; }
@@ -42,6 +51,12 @@ button:focus-visible { outline: 2px solid #9bc8ff; outline-offset: 2px; }
 .mg-facts dt { color: #a9bed0; }.mg-facts dd { margin: 0; }
 pre { overflow: auto; background: #101820; border-radius: 8px; padding: 14px; }
 .mg-note, .mg-pending { color: #bad1e5; }
+.mg-menu-demo { display: flex; flex-wrap: wrap; align-items: start; gap: 6px; max-width: 100%; }
+.mg-menu-demo button { padding: 5px 8px; }
+.mg-menu-demo button:disabled { opacity: .5; cursor: default; }
+.mg-menu { flex-basis: 100%; width: 170px; max-width: 100%; background: #33465b; border: 1px solid #6b829a; border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px #0006; }
+.mg-menu [role='menuitem'] { padding: 5px 8px; }
+.mg-menu-state { color: #a9bed0; font-size: 12px; }
 @media (max-width: 740px) {
   .mg-layout { grid-template-columns: 1fr; }
   .mg-nav { display: flex; flex-wrap: wrap; gap: 5px; }

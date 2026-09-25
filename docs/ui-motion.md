@@ -9,7 +9,7 @@ Motionを選ぶ基準は、動かす要素の中に画像・動画・特殊な�
 - **Behavior**: ReactやJSで再生時点を決めるもの。`ImageFirstPaint`は同じ画像の状態更新では再生しない。
 - **Recipe**: 動画・WebContentsView等の描画条件や製品固有のlifecycleを要するもの。Coreにはコピーしない。
 
-VideoDeckの実装をHarvestし、GalleryのLabで実際の動作・reduced時の理解しやすさ・回帰を評価してからCoreへ昇格する。registryの`status`は実装段階を表し、Recipeは参照用。CoreにないMotionを使う場合は、製品側で理由と描画面を確認する。
+VideoDeckの実装をHarvestし、GalleryのLabで実際の動作・reduced時の理解しやすさ・回帰を評価してからCoreへ昇格する。registryの`status`は実装段階を表し、Recipeは参照用。CoreにないMotionを使う場合は、製品側で理由と描画面を確認する。MenuPopIn / MenuPopOutは画像を含まない小型文字メニュー向けのLab候補で、既存UIには適用していない。退場時はanimationendと220msのfallbackでDOMから取り除く。
 
 ## Surface Safety
 
@@ -29,7 +29,7 @@ OSの`prefers-reduced-motion: reduce`を標準契約とする。空間移動・s
 
 rendererの`main.tsx`がtokensとpresetsを読み込む。必要な箇所に`ak-motion-*`クラスを指定する。画像の初回表示は`ImageFirstPaint`をimportする。registryのコード例・用途・避ける場面を確認する。
 
-雛形app-kitの開発用Galleryは`npm run gallery`を実行し、`http://127.0.0.1:5174/gallery.html`で開く。Replayで通常/Reducedを同時にやり直せる。生成アプリではこのscriptとGallery UIを除外し、Motion本体と本書を引き継ぐ。
+雛形app-kitの開発用Galleryは`npm run gallery`を実行し、`http://127.0.0.1:5174/gallery.html`で開く。「両方再生」で通常/動きを抑える比較を同時にやり直せる。日本語名と正式IDはregistryのメタデータから表示し、詳細の「IDをコピー」で指示用の正式IDを取得できる。生成アプリではこのscriptとGallery UIを除外し、Motion本体と本書を引き継ぐ。
 
 Toastの既存表示とDialogの即時closeはv1で変更しない。ToastのVideoDeck版は比較用。Dialog Exitはclosing stateからanimation終了後にnative closeするBehaviorとしてLabに置く。
 

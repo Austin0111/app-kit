@@ -17,6 +17,36 @@ export type MotionEntry = {
   code: string
 }
 
+export const motionStatusLabels: Record<MotionStatus, string> = { Core: '標準', Lab: '実験', Recipe: '特殊用途' }
+export const motionKindLabels: Record<MotionKind, string> = { token: 'トークン', preset: 'プリセット', behavior: '動作制御', recipe: '特殊用途' }
+export const motionSurfaceLabels: Record<MotionSurface, string> = { standard: '標準UI', 'media-safe': '画像向け安全', 'opaque-media': '不透明なメディア面' }
+export const toastComparisonNotes = {
+  'toast-compact': 'app-kit現行 / 登場 140ms',
+  'toast-rise': 'VideoDeck由来 / 登場 200ms',
+  'toast-drop': 'VideoDeck由来 / 退場 180ms'
+} as const
+
+/** OWNER-facing names stay beside the registry while the public identifiers remain stable. */
+export const motionDisplayNames: Record<string, string> = {
+  PanelFadeInMediaSafe: '画像入りパネル・フェード',
+  PanelEnterSubtle: 'パネルの控えめな登場',
+  ToastEnterCompact: '控えめな通知・登場',
+  ToastRiseIn: '通知の強調・登場',
+  ToastDropOut: '通知・退場',
+  AccordionReveal: '折り畳み内容の展開',
+  DisclosureCaret: '展開矢印',
+  SegmentIndicatorGlide: '選択位置の移動',
+  ToggleThumbSlide: 'スイッチの切替',
+  ImageFirstPaintFade: '画像の初回表示',
+  CardLiftSubtle: 'カードの控えめな浮き上がり',
+  SelectionGlider: '選択面の追従',
+  DialogExitLifecycle: 'ダイアログの退場制御',
+  ToastSlideOpaque: '不透明な通知',
+  MediaFullscreenCurtain: '全画面切替の目隠し',
+  MenuPopIn: '小型メニュー・登場',
+  MenuPopOut: '小型メニュー・退場'
+}
+
 /** Registry is the source of truth for Gallery labels and promotion decisions. */
 export const motions: MotionEntry[] = [
   { id: 'panel-media-safe', name: 'PanelFadeInMediaSafe', kind: 'preset', surface: 'media-safe', status: 'Core', intent: '画像を再サンプリングせず穏やかに表示', use: '画像を含むパネル', avoid: '動画やWebContentsViewの合成面', parameters: 'opacity / standard / ease', reduced: '即時に表示', reference: 'VideoDeck renderer/styles/main.css panelIn', code: '<section className="ak-motion-panel-media-safe">…</section>' },
@@ -30,6 +60,8 @@ export const motions: MotionEntry[] = [
   { id: 'toggle', name: 'ToggleThumbSlide', kind: 'preset', surface: 'standard', status: 'Core', intent: 'ON/OFFの切替を明確にする', use: '状態を持つスイッチ', avoid: '装飾だけでON/OFFを伝える使い方', parameters: 'translateX / standard / ease', reduced: '位置移動停止。色とラベルで状態表示', reference: 'VideoDeck renderer/styles/main.css toggle', code: '<button role="switch" aria-checked={on}><span className="ak-motion-toggle-thumb" data-on={on} /></button>' },
   { id: 'image-first', name: 'ImageFirstPaintFade', kind: 'behavior', surface: 'media-safe', status: 'Core', intent: '初回ロードだけ画像を柔らかく表示', use: '初めて読み込むサムネイル', avoid: '再描画や状態更新のたびに再生する実装', parameters: 'opacity / layout / ease', reduced: '画像を即時表示', reference: 'VideoDeck renderer/styles/main.css thumbFadeIn', code: '<ImageFirstPaint src={url} alt="説明" />' },
   { id: 'card-lift', name: 'CardLiftSubtle', kind: 'preset', surface: 'standard', status: 'Core', intent: '操作可能なカードを控えめに強調', use: 'テキスト中心のカード', avoid: '大量画像を含むカード', parameters: 'Y -2px / fast / ease', reduced: '移動停止。影を維持', reference: 'VideoDeck renderer/styles/main.css card hover', code: '<button className="ak-motion-card-lift">開く</button>' },
+  { id: 'menu-pop-in', name: 'MenuPopIn', kind: 'preset', surface: 'standard', status: 'Lab', intent: '小型文字メニューの登場を示す', use: '画像を含まない小型文字メニュー', avoid: '画像・動画・WebContentsViewを含むメニュー', parameters: 'opacity + scale .98→1 / 180ms / ease', reduced: 'scaleなしで表示状態を切替', reference: 'VideoDeck renderer/styles/main.css menuIn', code: '<div className="ak-motion-menu-pop-in" role="menu">…</div>' },
+  { id: 'menu-pop-out', name: 'MenuPopOut', kind: 'preset', surface: 'standard', status: 'Lab', intent: '小型文字メニューを退場後に取り除く', use: '画像を含まない小型文字メニューの閉鎖', avoid: 'animationendだけに依存したDOM削除', parameters: 'opacity + scale 1→.98 / 180ms / ease。animationend + fallbackで削除', reduced: 'scaleなしで非表示状態へ移行', reference: 'VideoDeck renderer/styles/main.css menuOut; renderer/js/util.js animateContextMenuExit', code: '<div className="ak-motion-menu-pop-out" role="menu">…</div> // animationendとfallbackで削除' },
   { id: 'selection-glider', name: 'SelectionGlider', kind: 'behavior', surface: 'standard', status: 'Lab', intent: '選択面が項目を追従', use: 'ツリー・リスト', avoid: '未計測の可変行高', parameters: 'FLIP / layout', reduced: '即時位置切替', reference: 'VideoDeck renderer/styles/main.css treeActiveGlide', code: '// Lab: 計測と再描画時の契約を評価してから実装' },
   { id: 'dialog-exit', name: 'DialogExitLifecycle', kind: 'behavior', surface: 'standard', status: 'Lab', intent: '閉鎖を見せてからnative dialogを閉じる', use: '将来のdialog更新', avoid: '現在のDialogへCSSのみを付与', parameters: 'closing → animationend → close', reduced: '即時close', reference: 'template src/renderer/src/ui/dialog.tsx', code: '// Lab: closing state と native close の順序を設計' },
   { id: 'toast-opaque', name: 'ToastSlideOpaque', kind: 'recipe', surface: 'opaque-media', status: 'Recipe', intent: '合成面を透過させず通知を出す', use: '動画・WebContentsView上の通知', avoid: '通常UIの既定Toast', parameters: '不透明 / 画面外から水平移動', reduced: '不透明のまま即時表示', reference: 'VideoDeck preload/webview-adblock.js', code: '// Recipe: 合成面の検証後に製品別に実装' },
