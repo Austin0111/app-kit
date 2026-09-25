@@ -22,6 +22,9 @@
 /** 内部識別子。フォルダ名・ファイル名に使う。**後から変えない**。 */
 export const INTERNAL_NAME = 'app-kit'
 
+/** 雛形の開発専用 UI にだけ使う。派生アプリ生成時に false へ置換する。 */
+export const IS_TEMPLATE = true
+
 /** 表示名。UI に出るのはこれだけ。いつでも変えてよい。 */
 export const DISPLAY_NAME = 'app-kit'
 

@@ -120,6 +120,7 @@ console.log('\n名前を差し替える')
 
 replaceIn('src/shared/app-meta.ts', [
   [`export const INTERNAL_NAME = 'app-kit'`, `export const INTERNAL_NAME = '${internalName}'`],
+  ['export const IS_TEMPLATE = true', 'export const IS_TEMPLATE = false'],
   [`export const DISPLAY_NAME = 'app-kit'`, `export const DISPLAY_NAME = '${displayName}'`],
   [`export const APP_ID = 'dev.austin.app-kit'`, `export const APP_ID = '${appId}'`]
 ])

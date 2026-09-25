@@ -4,6 +4,12 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.3.2] - 2026-09-26
+
+- app-kitの開発画面にDesign System入口を追加し、既存Motion Galleryをワンクリックで開けるようにした
+- Motion Standard PolicyとVideoDeck Harvestの昇格条件、標準Component候補の対応を文書化した
+- 派生アプリではGallery UIに加え、開発用入口も表示しない境界を確認した
+
 ## [0.3.1] - 2026-09-26
 
 - Motion Galleryの主要ラベルを日本語優先にし、日本語名と正式IDを併記してIDをコピーできるようにした

@@ -36,10 +36,12 @@ export function registeredIpcChannels(): string[] {
   return [...registeredChannels].sort()
 }
 
-/** 本体画面はアプリ外へ遷移せず、新しい子画面も勝手に作らない。 */
-export function lockDownWebContents(contents: WebContents): void {
+/** 任意の遷移と子画面を拒否。開発Galleryの子画面だけ正確なURLを許可する。 */
+export function lockDownWebContents(contents: WebContents, allowedUrl?: string): void {
   contents.setWindowOpenHandler(() => ({ action: 'deny' }))
-  contents.on('will-navigate', (event) => event.preventDefault())
+  contents.on('will-navigate', (event, url) => {
+    if (url !== allowedUrl) event.preventDefault()
+  })
   contents.on('will-redirect', (event) => event.preventDefault())
 
   const ses = contents.session

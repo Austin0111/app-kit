@@ -22,6 +22,7 @@ export type Launched = {
 export async function launchApp(options: {
   userDataDir?: string
   removeUserDataOnClose?: boolean
+  rendererUrl?: string
 } = {}): Promise<Launched> {
   const userDataDir = options.userDataDir ?? mkdtempSync(join(tmpdir(), 'e2e-test-'))
   const removeUserDataOnClose = options.removeUserDataOnClose ?? options.userDataDir === undefined
@@ -29,7 +30,13 @@ export async function launchApp(options: {
   const app = await electron.launch({
     args: ['out/main/index.js'],
     // APP_E2E=1 で、検証用の仕掛け（描画をわざと壊すボタン等）が出るようになる
-    env: { ...process.env, APP_USER_DATA_DIR: userDataDir, NODE_ENV: 'test', APP_E2E: '1' }
+    env: {
+      ...process.env,
+      APP_USER_DATA_DIR: userDataDir,
+      NODE_ENV: 'test',
+      APP_E2E: '1',
+      ELECTRON_RENDERER_URL: options.rendererUrl ?? ''
+    }
   })
 
   const page = await app.firstWindow()

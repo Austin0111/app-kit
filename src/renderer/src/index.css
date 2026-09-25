@@ -60,6 +60,20 @@ section {
   border-top: 1px solid var(--line);
 }
 
+.design-system__link {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+}
+
+.design-system__link:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
 .muted {
   color: var(--muted);
   font-size: 13px;

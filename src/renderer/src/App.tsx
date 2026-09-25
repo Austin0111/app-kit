@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Api } from '../../preload'
 import { useSettings } from './useSettings'
 import { useDialog, useToast, TitleBar, VersionBadge } from './ui'
-import { DISPLAY_NAME } from '../../shared/app-meta'
+import { DISPLAY_NAME, IS_TEMPLATE } from '../../shared/app-meta'
 
 declare global {
   interface Window {
@@ -156,6 +156,15 @@ export default function App(): JSX.Element {
           <p className="muted">
             雛形の動作確認。{loaded ? '設定を読み込み済み' : '設定を読み込み中…'}
           </p>
+
+          {window.location.protocol === 'http:' && IS_TEMPLATE && (
+            <section aria-labelledby="design-system-heading">
+              <h2 id="design-system-heading">デザインシステム</h2>
+              <a className="design-system__link" href="/gallery.html" target="_blank" rel="noopener noreferrer">
+                動きの見本帳（Motion Gallery）を開く
+              </a>
+            </section>
+          )}
 
           <section>
             <h2>設定KV</h2>

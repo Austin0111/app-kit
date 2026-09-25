@@ -24,6 +24,7 @@ test('生成した派生アプリが名前整合・型検査・DB生成・build�
     expect(pkg.scripts.gallery).toBeUndefined()
     expect(existsSync(join(target, 'src/renderer/gallery.html'))).toBe(false)
     expect(existsSync(join(target, 'src/renderer/gallery'))).toBe(false)
+    expect(readFileSync(join(target, 'src/shared/app-meta.ts'), 'utf8')).toContain('export const IS_TEMPLATE = false')
     expect(existsSync(join(target, 'src/renderer/src/motion/presets.css'))).toBe(true)
     expect(existsSync(join(target, 'src/renderer/src/motion/registry.ts'))).toBe(true)
 
