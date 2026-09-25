@@ -1,4 +1,4 @@
-:root { color-scheme: dark; font: 14px/1.5 system-ui, sans-serif; --bg: #15191f; --fg: #edf1f4; --muted: #a9bed0; --line: #43566f; --accent: #9bc8ff; background: var(--bg); color: var(--fg); }
+:root { color-scheme: dark; font: 14px/1.5 system-ui, sans-serif; --bg: #15191f; --fg: #edf1f4; --muted: #a9bed0; --line: #43566f; --accent: #9bc8ff; --ak-button-primary-fg: #101820; background: var(--bg); color: var(--fg); }
 * { box-sizing: border-box; }
 body { margin: 0; }
 button { font: inherit; }
@@ -7,8 +7,8 @@ button { font: inherit; }
 .cg-header h1 { margin: 2px 0 4px; font-size: 27px; }
 .cg-header p { margin: 0; color: #b5c3d0; }
 .cg-eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 11px; }
-.cg-header > button, .cg-nav button, .cg-inline-button { color: var(--fg); background: #263449; border: 1px solid var(--line); border-radius: 7px; padding: 8px 11px; cursor: pointer; }
-.cg-header > button:focus-visible, .cg-nav button:focus-visible, .cg-inline-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cg-nav button { color: var(--fg); background: #263449; border: 1px solid var(--line); border-radius: 7px; padding: 8px 11px; cursor: pointer; }
+.cg-nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .cg-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; margin-top: 20px; }
 .cg-nav { display: grid; align-content: start; gap: 5px; }
 .cg-nav button { display: block; width: 100%; text-align: left; background: transparent; border-color: transparent; }
@@ -26,6 +26,7 @@ button { font: inherit; }
 .cg-stack { display: grid; gap: 12px; }
 .cg-stack p { margin: 5px 0 0; }
 .cg-inline-button { display: block; margin-top: 8px; }
+.cg-button-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .cg-image { width: 100%; height: 52px; margin-top: 8px; border-radius: 5px; background: linear-gradient(130deg, #485f7b, #a0b0ba 52%, #526b5d); }
 .cg-hint { font-size: 12px; }
 .cg-facts { display: grid; grid-template-columns: 130px 1fr; gap: 8px 14px; margin-top: 22px; }

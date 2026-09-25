@@ -25,3 +25,18 @@
 .ak-ui-card--interactive { width: 100%; display: block; text-align: left; font: inherit; cursor: pointer; }
 .ak-ui-card--interactive:disabled { opacity: .55; cursor: default; }
 .ak-ui-card--interactive:hover:not(:disabled) { border-color: var(--accent, #7eaee0); }
+.ak-ui-button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 7px 13px; border: 1px solid transparent; border-radius: 6px; font: inherit; font-weight: 600; line-height: 1.35; text-align: center; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color var(--ak-motion-duration-fast) var(--ak-motion-ease-standard), border-color var(--ak-motion-duration-fast) var(--ak-motion-ease-standard), color var(--ak-motion-duration-fast) var(--ak-motion-ease-standard); }
+.ak-ui-button--compact { min-height: 30px; padding: 4px 9px; font-size: .9em; }
+.ak-ui-button--primary { background: var(--accent, #7c3aed); color: var(--ak-button-primary-fg, #fff); }
+.ak-ui-button--secondary { background: color-mix(in srgb, var(--fg, #edf1f4) 10%, transparent); color: var(--fg, #edf1f4); border-color: var(--line, #43566f); }
+.ak-ui-button--ghost { background: transparent; color: var(--fg, #edf1f4); }
+.ak-ui-button--danger { background: #a52929; color: #fff; }
+.ak-ui-button--primary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent, #7c3aed) 82%, var(--fg, #fff)); }
+.ak-ui-button--secondary:hover:not(:disabled), .ak-ui-button--ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--fg, #edf1f4) 17%, transparent); }
+.ak-ui-button--danger:hover:not(:disabled) { background: #bd3535; }
+.ak-ui-button:active:not(:disabled) { border-color: currentColor; }
+.ak-ui-button:focus-visible { outline: 2px solid var(--accent, #9bc8ff); outline-offset: 2px; }
+.ak-ui-button:disabled { opacity: .55; cursor: default; }
+.ak-ui-button__icon { display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.ak-ui-button--icon { width: 36px; padding: 0; }
+.ak-ui-button--icon.ak-ui-button--compact { width: 30px; }

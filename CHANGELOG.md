@@ -4,6 +4,12 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.4.2] - 2026-09-26
+
+- Button利用状況を棚卸しし、汎用操作向けの標準Button / IconButton v1を追加した
+- Component Galleryでvariant・size・アイコン・disabled・Reduced Motionを比較できるようにし、Gallery内の代表操作に適用した
+- 派生アプリへのButton本体とstyleの継承、およびGallery UIの分離を検証対象に加えた
+
 ## [0.4.1] - 2026-09-26
 
 - app-kit専用のFigma Review Fileを登録し、localhost実画面のCaptureからReview・修正までの手順を整備した

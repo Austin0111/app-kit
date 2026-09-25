@@ -8,8 +8,31 @@
 | Toggle | 即時反映の二値設定 | オン / オフ / disabled、Standard | ToggleThumbSlide | 確定操作や三値以上の選択 |
 | Panel | 内容のまとまり | Standard / Media Safe / Opaque Media、静止 / enter | PanelEnterSubtle / PanelFadeInMediaSafe（enter時） | 画像・動画入り面へのStandard登場Motion |
 | Card | 情報表示または単一操作 | Static / Interactive / disabled、Standard / Media Safe | CardLiftSubtle（Standard Interactiveのみ） | 複数操作の内包、画像入りCardへのlift |
+| Button / IconButton | 汎用操作 | primary / secondary / ghost / danger、standard / compact | fast tokenによる色の反応 | Toggle、画面遷移、タイトルバー等の専用操作 |
 
 `Panel` は `surface` を必須にする。画像入りには `media-safe` を指定し、動画・WebContentsView等には `opaque-media` を指定する。Opaque Mediaはv1ではMotionなし。`Card` は静的ならdiv、interactiveならbuttonで、画像入りの `media-safe` はliftしない。Motionを使う必要がない `Panel` は静止が既定。
+
+## Button v1
+
+`Button` は標準で `secondary` / `standard` / `type="button"`。画面の主操作は `primary`、補助操作は `secondary`、背景を持たない軽い操作は `ghost`、削除など破壊的な操作は `danger`。狭いツール領域には `compact`。アイコンと文字の組み合わせは `icon` を渡す。アイコンだけなら `IconButton` を使い、`aria-label` を必ず指定する。両方とも native button の属性（`disabled`、`aria-pressed`、`type` 等）を受け取る。ロード状態は現行実装に需要がなく、v1には含めない。
+
+```tsx
+import { Button, IconButton } from './ui'
+
+<Button variant="primary" onClick={save}>保存</Button>
+<Button size="compact" icon={<PlusIcon />}>追加</Button>
+<IconButton aria-label="閉じる" onClick={close}><CloseIcon /></IconButton>
+```
+
+ボタン操作は native の Enter / Space と `disabled` を使う。focus-visible は共通の輪郭で表示する。選択を保持する用途は適切な `aria-pressed` と文字を併用するが、即時反映の二値設定は `Toggle` を使う。リンクへの遷移は `a` を使う。押下時は枠色が即時に反応し、hoverの色変化は既存 `--ak-motion-duration-fast` / `--ak-motion-ease-standard` を参照する。Reduced Motionでは duration token が 1ms となり、位置移動はない。PressSoft / PressCompactは現行registryに存在しないため、未承認のCore Motionとして追加しない。
+
+### 棚卸しと移行
+
+- **標準化して残す**: `Accordion` の開閉、`Toggle` のswitch、`Card` の面全体操作。これらは独自の意味とARIA状態を持つ。TitleBar、VersionBadge、Toastのdismiss、Dialogの確定/危険操作も専用の配置・挙動があるため現行実装を維持する。
+- **標準Buttonへ寄せられる**: `App.tsx` の追加・バックアップ・診断等の汎用操作、Galleryの再生・補足操作、ErrorBoundaryの復旧操作。v1ではGalleryの2箇所だけ適用した。Galleryの選択ナビゲーションは選択状態と配置があるため別途判断する。
+- **特殊用途**: テーマ・ステータスバーの即時設定ボタンは `aria-pressed` や `Toggle` への移行を含めて検討する。Dialog・VersionBadge・TitleBarは専用スタイルを保持し、一括置換しない。`App.tsx` の「×」は accessible name の追加が先決。画面遷移は既存のリンクを維持する。
+
+既存の `<button>` はほぼ native 要素で、`div role="button"` 等の代用は見つからなかった。汎用ボタンの背景色・余白は `index.css` の全体指定と `li button`、Dialog、Galleryの局所CSSに分散している。focus-visible は一部専用ComponentとGalleryにはあるが、通常の `App.tsx` ボタンには共通指定がない。hover / active feedbackも用途ごとにばらつく。新規の汎用操作から標準Buttonを使い、既存画面は振る舞いと見た目を比較して段階的に移行する。
 
 ```tsx
 import { Accordion, Toggle, Panel, Card } from './ui'
