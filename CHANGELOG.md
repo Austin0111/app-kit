@@ -4,6 +4,11 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.3.3] - 2026-09-26
+
+- app-kitのUI開発フローに実装後のFigma Design Review条件とReview結果の反映手順を追加した
+- 既存のMotion System、Surface Safety、Reduced Motion Contractを参照するReview手引きを追加した
+
 ## [0.3.2] - 2026-09-26
 
 - app-kitの開発画面にDesign System入口を追加し、既存Motion Galleryをワンクリックで開けるようにした

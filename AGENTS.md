@@ -24,3 +24,20 @@
 - 依存導入は README の順序どおり `npm install --ignore-scripts`、`node node_modules/electron/install.js`、`npx electron-rebuild -w better-sqlite3` を使う。
 - 雛形からアプリを作る前に `scripts/create-app.mjs` と README 末尾の注意事項を確認する。
 - テストは `tests/helpers.ts` を通して一時 userData を使い、本番データへ干渉させない。
+
+### UI Design Review / Figma Integration
+
+標準UI開発フローを次の順で進める。詳細なReview方法は `docs/ui-design-review.md`、Motionの値・Surface Safety・Reduced Motion Contractは `docs/ui-motion.md` を正本とする。
+
+1. UI変更の規模と種類を判定する。新規画面、大規模なレイアウト変更、新規Reusable Component、大幅なVisual Redesignをsubstantial UI workとする。
+2. 既存Component、Design System、Motion Registryを確認する。
+3. 既存パターンで表現できる場合は再利用する。OWNER向けUIは日本語を優先し、内部ID・コード識別子は英語でよい。
+4. 情報理解や操作確認に不要なMotionを追加しない。
+5. Motionが必要ならCoreを優先する。Toast比較など未確定の値はOWNER評価前に統一しない。
+6. 内容物を基準にStandard / Media Safe / Opaque MediaのSurfaceを分類し、Reduced Motionでも状態情報を残す。
+7. 実装し、通常・Reduced双方と該当する画面幅で確認する。
+8. substantial UI workでは、利用可能なFigma integrationを使って実装後のDesign Reviewを行う。利用できない場合は通常のUI reviewを行い、未実施理由を報告する。小変更には要求しない。
+9. Reviewで見つけた問題をコードに反映し、再確認する。
+10. 有用な新規Pattern / MotionはLab、Gallery、Design Harvestの候補として記録し、評価前にCoreへ昇格させない。
+
+VideoDeckは標準Motionの主要な実地検証Sourceだが、製品固有の演出を無条件に標準化しない。昇格経路とSurfaceごとの許容Motionは `docs/ui-motion.md` を正本とする。
