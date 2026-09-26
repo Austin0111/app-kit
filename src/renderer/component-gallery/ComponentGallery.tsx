@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Accordion, Button, Card, IconButton, Panel, Toggle } from '../src/ui'
+import { Accordion, Button, Card, IconButton, Panel, TextField, Toggle } from '../src/ui'
 import { components, type ComponentEntry } from '../src/ui/component-registry'
 
 function Example({ id }: { id: ComponentEntry['id'] }): JSX.Element {
   const [enabled, setEnabled] = useState(false)
   const [selected, setSelected] = useState(false)
   const [buttonCount, setButtonCount] = useState(0)
+  const [fieldValue, setFieldValue] = useState('')
   if (id === 'accordion') return <div className="cg-stack">
     <Accordion title="詳細を表示">開いている間、内容へTabで移動できます。<Button size="compact" className="cg-inline-button">補足操作</Button></Accordion>
     <Accordion title="利用できない項目" disabled>内容はDOMに残ります。</Accordion>
@@ -25,6 +26,13 @@ function Example({ id }: { id: ComponentEntry['id'] }): JSX.Element {
     <div className="cg-button-row"><Button variant="primary" disabled>保存できません</Button><IconButton aria-label="閉じる（無効）" disabled>×</IconButton></div>
     <output>保存操作: {buttonCount}回</output>
   </div>
+  if (id === 'text-field') return <div className="cg-field-grid">
+    <TextField label="標準の入力" value={fieldValue} onChange={(event) => setFieldValue(event.target.value)} />
+    <TextField label="保存先" description="生成したファイルの保存先です" placeholder="フォルダー名を入力" required />
+    <TextField label="変更できない値" defaultValue="既存の値" readOnly />
+    <TextField label="利用できない項目" defaultValue="編集不可" disabled />
+    <TextField label="検証エラー" description="入力値を確認してください" defaultValue="見つからないフォルダー" error="フォルダーが見つかりません" />
+  </div>
   return <div className="cg-stack">
     <Card><b>Static</b><p>情報を表示するだけのCardです。</p></Card>
     <Card interactive onClick={() => setSelected(!selected)}><b>Interactive / Standard</b><p>{selected ? '選択しました' : 'クリックまたはEnter / Spaceで選択'}</p></Card>
@@ -43,8 +51,8 @@ export function ComponentGallery(): JSX.Element {
       <nav className="cg-nav" aria-label="Component一覧">{components.map((component) => <button type="button" key={component.id} className={selectedId === component.id ? 'is-selected' : ''} onClick={() => { setSelectedId(component.id); setReplay((value) => value + 1) }}><span>{component.name}</span><small>{component.id}</small></button>)}</nav>
       <article className="cg-detail"><div className="cg-tags"><span>Core Component</span><span>{entry.id === 'panel' || entry.id === 'card' ? 'Standard / Media Safe' : 'Standard'}</span></div><h2>{entry.name}</h2><p>{entry.purpose}</p>
         <div className="cg-compare"><section className="cg-stage" data-ak-motion="normal" aria-label="通常の動き"><h3>Normal</h3><Example key={`${entry.id}-normal-${replay}`} id={entry.id} /></section><section className="cg-stage" data-ak-motion="reduce" aria-label="動きを抑える"><h3>Reduced Motion</h3><Example key={`${entry.id}-reduced-${replay}`} id={entry.id} /></section></div>
-        <p className="cg-hint">Hoverはポインター、FocusはTabで確認できます。Reducedでも開閉・オン/オフ・選択状態は文字とARIAで残ります。</p>
-        <dl className="cg-facts"><dt>状態 / Surface</dt><dd>{entry.variants}</dd><dt>推奨用途</dt><dd>{entry.use}</dd><dt>避ける場面</dt><dd>{entry.avoid}</dd><dt>{entry.id === 'button' ? 'Motion / Feedback' : 'Core Motion'}</dt><dd>{entry.motion}</dd></dl>
+        <p className="cg-hint">Hoverはポインター、FocusはTabで確認できます。Reducedでも状態は文字とARIAで残ります。テキスト入力にMotionはありません。</p>
+        <dl className="cg-facts"><dt>状態 / Surface</dt><dd>{entry.variants}</dd><dt>推奨用途</dt><dd>{entry.use}</dd><dt>避ける場面</dt><dd>{entry.avoid}</dd><dt>{entry.id === 'button' || entry.id === 'text-field' ? 'Motion / Feedback' : 'Core Motion'}</dt><dd>{entry.motion}</dd></dl>
         <h3>最小コード例</h3><pre><code>{entry.code}</code></pre>
       </article>
     </div>

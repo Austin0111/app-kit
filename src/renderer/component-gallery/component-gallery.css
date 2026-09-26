@@ -27,6 +27,7 @@ button { font: inherit; }
 .cg-stack p { margin: 5px 0 0; }
 .cg-inline-button { display: block; margin-top: 8px; }
 .cg-button-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cg-field-grid { display: grid; gap: 16px; }
 .cg-image { width: 100%; height: 52px; margin-top: 8px; border-radius: 5px; background: linear-gradient(130deg, #485f7b, #a0b0ba 52%, #526b5d); }
 .cg-hint { font-size: 12px; }
 .cg-facts { display: grid; grid-template-columns: 130px 1fr; gap: 8px 14px; margin-top: 22px; }

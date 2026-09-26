@@ -9,8 +9,26 @@
 | Panel | 内容のまとまり | Standard / Media Safe / Opaque Media、静止 / enter | PanelEnterSubtle / PanelFadeInMediaSafe（enter時） | 画像・動画入り面へのStandard登場Motion |
 | Card | 情報表示または単一操作 | Static / Interactive / disabled、Standard / Media Safe | CardLiftSubtle（Standard Interactiveのみ） | 複数操作の内包、画像入りCardへのlift |
 | Button / IconButton | 汎用操作 | primary / secondary / ghost / danger、standard / compact | fast tokenによる色の反応 | Toggle、画面遷移、タイトルバー等の専用操作 |
+| TextField | 単一行の一般的なテキスト入力 | standard、required / disabled / readonly / invalid | なし | 検索・数値・パスワード・複数行・選択肢 |
 
 `Panel` は `surface` を必須にする。画像入りには `media-safe` を指定し、動画・WebContentsView等には `opaque-media` を指定する。Opaque Mediaはv1ではMotionなし。`Card` は静的ならdiv、interactiveならbuttonで、画像入りの `media-safe` はliftしない。Motionを使う必要がない `Panel` は静止が既定。
+
+## TextField v1
+
+`TextField` は単一行の通常テキストを入力するための標準Component。`label` は必須で、`description` と `error` は任意。`required`、`disabled`、`readOnly`、`placeholder`、`name`、`autoComplete`、`value` / `defaultValue`、`onChange` 等はnative input属性を受け取る。呼び出し側のrefもinputへ渡る。既存利用に高さ違いの要請がないため、v1にsize variantは設けない。
+
+```tsx
+import { TextField } from './ui'
+
+<TextField label="保存先" description="生成したファイルの保存先です" error={error} required />
+<TextField label="メモ" value={draft} onChange={(event) => setDraft(event.target.value)} />
+```
+
+labelは`htmlFor`でinputへ結び、description、error、呼び出し側の`aria-describedby`を同じinputへ結ぶ。errorがあれば`aria-invalid="true"`とエラー文を表示する。`required`、`disabled`、`readOnly`はnative semanticsを維持する。ID省略時はReactの`useId`を用い、StrictModeでも再描画時に安定させる。placeholderは補助例でありlabelの代わりにはしない。focus-visibleは明確な輪郭、errorは色に加えて文言で伝える。動きは付けないためReduced Motionでも状態情報は同じ。
+
+短い設定名や自由入力に推奨する。検索・数値・パスワード・複数行・選択肢は、それぞれSearchField / NumberField / PasswordField / TextArea / Selectの別候補とし、`TextField`の`type`を変えて流用しない。prefix / suffix / iconやvalidation frameworkもv1には含めない。
+
+棚卸しでは、製品UIのテキスト入力は`App.tsx`のnotes入力（controlled、placeholderのみ、labelなし）と`dialog.tsx`のprompt入力（uncontrolled、タイトルのみ、`autoFocus`）の2箇所。色選択inputは別用途。search / number / password / selectの実画面利用はなく、Motion Galleryのtextareaはコピー用の一時DOMだけである。入力の見た目は`index.css`のglobal `input`とDialog局所CSSに分散し、focus-visible・invalid・disabledの共通契約がなかった。notes入力はlabelと配置を整理してから段階的に移行する候補。Dialog promptはfocusと送信lifecycleを保つ必要があるため、専用UIとして別途評価する。既存画面は一括置換せず、v1はComponent Galleryで実際に利用する。
 
 ## Button v1
 
