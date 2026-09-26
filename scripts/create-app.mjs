@@ -6,7 +6,7 @@
  *
  * 例:
  *   node scripts/create-app.mjs manga-shelf --display "漫画棚"
- *   → D:\ClaudeCode\manga-shelf が出来る
+ *   → 雛形と同じ親ディレクトリに manga-shelf が出来る
  *
  * やること:
  *   1. 雛形を複製（node_modules / out / dist / test-results / .git は除く）
@@ -23,8 +23,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
-  writeFileSync,
-  rmSync
+  writeFileSync
 } from 'fs'
 import { dirname, join, resolve } from 'path'
 import { fileURLToPath } from 'url'
@@ -48,7 +47,8 @@ const DEVELOPMENT_ONLY = new Set([
   'tests/motion-gallery.spec.ts',
   'tests/design-system-entry.spec.ts',
   'tests/generator.spec.ts',
-  'docs/settings-interactions.md'
+  'docs/settings-interactions.md',
+  'docs/maintenance.md'
 ])
 
 // ---------------------------------------------------------------- 引数
@@ -71,7 +71,9 @@ const targetDir = resolve(readOption('--dir') ?? join(TEMPLATE_ROOT, '..', inter
 
 function readOption(name) {
   const i = argv.indexOf(name)
-  return i >= 0 && argv[i + 1] ? argv[i + 1] : null
+  if (i < 0) return null
+  if (!argv[i + 1] || argv[i + 1].startsWith('--')) fail(`${name} に値が必要`)
+  return argv[i + 1]
 }
 
 // ---------------------------------------------------------------- 検査
@@ -110,19 +112,20 @@ cpSync(TEMPLATE_ROOT, targetDir, {
 
 const appId = `dev.austin.${internalName}`
 
-/** ファイルの中身を置換する。対象が無い場合は黙って飛ばさず知らせる */
+/** 必須の生成元が欠けたら、不完全なアプリを成功扱いせず停止する。 */
 function replaceIn(relPath, replacements) {
   const path = join(targetDir, relPath)
   if (!existsSync(path)) {
-    console.warn(`  ! 見つからない: ${relPath}`)
-    return
+    fail(`必須ファイルが見つからない: ${relPath}`)
   }
   let text = readFileSync(path, 'utf8')
   let changed = 0
   for (const [from, to] of replacements) {
-    const before = text
+    if (!text.includes(from)) {
+      fail(`${relPath} の必須置換 ${changed + 1}/${replacements.length} が見つからない。雛形とcreate-appの契約を確認すること`)
+    }
     text = text.split(from).join(to)
-    if (text !== before) changed++
+    changed++
   }
   writeFileSync(path, text)
   console.log(`  ${relPath}${changed} 箇所`)

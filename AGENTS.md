@@ -30,6 +30,7 @@
 - 依存導入は README の順序どおり `npm install --ignore-scripts`、`node node_modules/electron/install.js`、`npx electron-rebuild -w better-sqlite3` を使う。
 - 雛形からアプリを作る前に `scripts/create-app.mjs` と README 末尾の注意事項を確認する。
 - テストは `tests/helpers.ts` を通して一時 userData を使い、本番データへ干渉させない。
+- 変更箇所ごとの追加検証と配布前の判断は `docs/maintenance.md` のChange Impact Matrixを参照する。上記の必須検証を省略する根拠にはしない。
 
 ### UI Design Review / Figma Integration
 

@@ -29,7 +29,7 @@
 |---|---|
 | 型エラー 0 | `npm run typecheck` |
 | 名前のズレ 0 | `npm run check:names` |
-| ビルド成功 | `electron-vite build` |
+| ビルド成功 | `npm run build` |
 | テスト全 PASS | `npx playwright test` |
 | Console Error 0 | テスト内で検査済み（`consoleErrors`） |
 | スクショ確認済 | `test-results/screenshots/` を**実際に見る** |
@@ -54,7 +54,7 @@
 ### 配布前は必ず「配布版」を確かめる
 
 `npm run dist` でインストーラを作ると `tests/packaged.spec.ts` が有効になる
-（作っていない間は自動で飛ばす）。
+（作っていない間は自動で飛ばす）。残っている`dist`が古い版でも通常の`verify`は走り得るため、配布確認には`dist`の直後に`npm run test:packaged`を実行する。変更箇所別の検証は [docs/maintenance.md](docs/maintenance.md) を参照する。
 
 **開発時に通っても配布版で壊れることがある。** 配布版は `app.isPackaged` が真になり、
 マイグレーションや変更履歴を `process.resourcesPath` から読む**別の経路**に入る。
@@ -199,6 +199,8 @@ tests/
   generator.spec.ts    生成した派生アプリの型・名前・build
   screenshot.spec.ts   目視用の素材を撮る（合否は判定しない）
 ```
+
+上表は主要なテストの例であり、全件は`tests/`を確認する。
 
 **テストは本番のデータを触らない。** `helpers.ts` が `APP_KIT_USER_DATA` で
 一時フォルダへ逃がしている。新しいテストもこれを通して起動すること。

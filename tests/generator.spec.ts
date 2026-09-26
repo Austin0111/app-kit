@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
-import { execFileSync } from 'child_process'
-import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'fs'
+import { execFileSync, spawnSync } from 'child_process'
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
@@ -32,7 +32,7 @@ test('生成した派生アプリが名前整合・型検査・DB生成・build�
       'src/renderer/src/ui/component-registry.ts', 'scripts/create-app.mjs',
       'tests/component-gallery.spec.ts', 'tests/motion-gallery.spec.ts',
       'tests/design-system-entry.spec.ts', 'tests/generator.spec.ts',
-      'docs/settings-interactions.md', 'test-results'
+      'docs/settings-interactions.md', 'docs/maintenance.md', 'test-results'
     ]) expect(existsSync(join(target, relative))).toBe(false)
     expect(existsSync(join(target, 'src/renderer/src/ui/TextField.tsx'))).toBe(true)
     expect(existsSync(join(target, 'src/renderer/src/ui/EmptyState.tsx'))).toBe(true)
@@ -104,6 +104,23 @@ test('生成した派生アプリが名前整合・型検査・DB生成・build�
       [join(root, 'node_modules', 'electron-vite', 'bin', 'electron-vite.js'), 'build'],
       { cwd: target, stdio: 'pipe' }
     )
+  } finally {
+    rmSync(holder, { recursive: true, force: true })
+  }
+})
+
+test('生成元の必須ファイルが欠けたら不完全なアプリを成功扱いしない', () => {
+  const root = process.cwd()
+  const holder = mkdtempSync(join(tmpdir(), 'app-kit-generator-failure-'))
+  const fixtureScripts = join(holder, 'fixture', 'scripts')
+  mkdirSync(fixtureScripts, { recursive: true })
+  copyFileSync(join(root, 'scripts', 'create-app.mjs'), join(fixtureScripts, 'create-app.mjs'))
+  try {
+    const result = spawnSync(process.execPath, [join(fixtureScripts, 'create-app.mjs'), 'missing-source', '--dir', join(holder, 'output')], {
+      cwd: root, encoding: 'utf8'
+    })
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain('必須ファイルが見つからない: src/shared/app-meta.ts')
   } finally {
     rmSync(holder, { recursive: true, force: true })
   }
