@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Api } from '../../preload'
 import { useSettings } from './useSettings'
-import { EmptyState, useDialog, useToast, TextField, TitleBar, VersionBadge } from './ui'
+import { Button, EmptyState, IconButton, useDialog, useToast, TextField, TitleBar, VersionBadge } from './ui'
 import { DISPLAY_NAME, IS_TEMPLATE } from '../../shared/app-meta'
 
 declare global {
@@ -12,6 +12,10 @@ declare global {
 
 type Note = { id: number; body: string; createdAt: string; done: boolean }
 type BackupEntry = { path: string; name: string; size: number; createdAt: string }
+type BackupListState =
+  | { status: 'loading' }
+  | { status: 'loaded'; items: BackupEntry[] }
+  | { status: 'error' }
 
 /** 秘密情報の状態を、素人にも分かる言葉にする。 */
 const SECRET_LABEL: Record<string, string> = {
@@ -34,7 +38,8 @@ export default function App(): JSX.Element {
   const [notes, setNotes] = useState<Note[]>([])
   const [notesLoaded, setNotesLoaded] = useState(false)
   const [draft, setDraft] = useState('')
-  const [backups, setBackups] = useState<BackupEntry[]>([])
+  const [backupList, setBackupList] = useState<BackupListState>({ status: 'loading' })
+  const backups = backupList.status === 'loaded' ? backupList.items : []
   const [apiKeyStatus, setApiKeyStatus] = useState<string>('unset')
   // エラー境界が働くかを確かめるための仕掛け。真になると描画が失敗する。
   // 検証用なので配布版では触れない（下のボタンを出さない）
@@ -42,9 +47,13 @@ export default function App(): JSX.Element {
   if (boom) throw new Error('確認用: わざと描画に失敗させた')
 
   useEffect(() => {
+    let active = true
     window.api.notes.list().then((items) => { setNotes(items); setNotesLoaded(true) })
-    window.api.backup.list().then(setBackups)
+    window.api.backup.list()
+      .then((items) => { if (active) setBackupList({ status: 'loaded', items }) })
+      .catch(() => { if (active) setBackupList({ status: 'error' }) })
     window.api.secrets.status('demoApiKey').then(setApiKeyStatus)
+    return () => { active = false }
   }, [])
 
   async function showChangelog(): Promise<void> {
@@ -86,7 +95,7 @@ export default function App(): JSX.Element {
   async function createBackup(): Promise<void> {
     try {
       await window.api.backup.create()
-      setBackups(await window.api.backup.list())
+      setBackupList({ status: 'loaded', items: await window.api.backup.list() })
       toast.success('バックアップを取った')
     } catch (err) {
       toast.error(`バックアップに失敗した: ${String(err)}`)
@@ -167,6 +176,9 @@ export default function App(): JSX.Element {
               <a className="design-system__link" href="/component-gallery.html" target="_blank" rel="noopener noreferrer">
                 標準Componentの見本帳を開く
               </a>
+              <a className="design-system__link" href="/foundation-gallery.html" target="_blank" rel="noopener noreferrer">
+                標準Foundationの見本帳を開く
+              </a>
             </section>
           )}
 
@@ -223,7 +235,7 @@ export default function App(): JSX.Element {
                 onKeyDown={(e) => e.key === 'Enter' && addNote()}
                 placeholder="何か書いて Enter"
               />
-              <button onClick={addNote}>追加</button>
+              <Button variant="primary" onClick={addNote}>追加</Button>
             </div>
             {notesLoaded && notes.length === 0 && <EmptyState title="まだメモがありません" description="上の入力欄からメモを追加できます。" />}
             {notes.length > 0 && <ul>
@@ -232,7 +244,7 @@ export default function App(): JSX.Element {
                   <span>{n.body}</span>
                   <span className="row">
                     <button onClick={() => renameNote(n)}>編集</button>
-                    <button onClick={() => removeNote(n)}>×</button>
+                    <IconButton aria-label={`${n.body}を削除`} onClick={() => removeNote(n)}>×</IconButton>
                   </span>
                 </li>
               ))}
@@ -240,9 +252,9 @@ export default function App(): JSX.Element {
           </section>
 
           <section>
-            <h2>バックアップ（{backups.length}世代）</h2>
+            <h2>バックアップ（{backupList.status === 'loaded' ? `${backups.length}世代` : backupList.status === 'loading' ? '読み込み中' : '取得失敗'}）</h2>
             <div className="row backup-actions">
-              <button onClick={createBackup}>今すぐバックアップ</button>
+              <Button variant="primary" onClick={createBackup} disabled={backupList.status === 'loading'}>今すぐバックアップ</Button>
               <button onClick={() => window.api.backup.openFolder()}>フォルダを開く</button>
               <button onClick={() => window.api.log.openFolder()}>ログを開く</button>
               <button onClick={createDiagnostics}>診断情報ZIPを作る</button>
@@ -256,7 +268,10 @@ export default function App(): JSX.Element {
                 : '自動バックアップは無効'}
               。復元は再起動して適用される。
             </p>
-            <ul>
+            {backupList.status === 'loading' && <p className="muted" role="status">バックアップを読み込み中…</p>}
+            {backupList.status === 'error' && <p className="warn" role="alert">バックアップ一覧を読み込めませんでした。</p>}
+            {backupList.status === 'loaded' && backups.length === 0 && <EmptyState title="まだバックアップがありません" description="「今すぐバックアップ」から作成できます。" />}
+            {backupList.status === 'loaded' && backups.length > 0 && <ul>
               {backups.map((b) => (
                 <li key={b.path}>
                   <span>
@@ -266,7 +281,7 @@ export default function App(): JSX.Element {
                   <button onClick={() => restoreBackup(b)}>復元</button>
                 </li>
               ))}
-            </ul>
+            </ul>}
           </section>
         </div>
       </main>

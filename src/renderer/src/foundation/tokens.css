@@ -1,0 +1,9 @@
+:root {
+  --ak-foundation-space-related: 8px;
+  --ak-foundation-radius-control: 6px;
+  --ak-foundation-radius-surface: 8px;
+  --ak-foundation-focus-width: 2px;
+  --ak-foundation-focus-offset: 2px;
+  --ak-foundation-color-warning: #f0a020;
+  --ak-foundation-type-supporting: 13px;
+}

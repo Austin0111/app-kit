@@ -38,7 +38,9 @@ const DEVELOPMENT_ONLY = new Set([
   'src/renderer/gallery.html',
   'src/renderer/gallery',
   'src/renderer/component-gallery.html',
-  'src/renderer/component-gallery'
+  'src/renderer/component-gallery',
+  'src/renderer/foundation-gallery.html',
+  'src/renderer/foundation-gallery'
 ])
 
 // ---------------------------------------------------------------- 引数

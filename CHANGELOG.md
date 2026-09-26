@@ -4,6 +4,13 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.4.5] - 2026-09-27
+
+- 起動時の自動作成を待ってバックアップ一覧を読み込み、loading・空・項目あり・取得失敗を分けた
+- 製品画面の追加・手動バックアップ・メモ削除へ標準Button / IconButtonを限定適用した
+- 既存値に基づくUI Foundation tokenと開発専用Foundation Galleryを追加し、派生アプリとの境界を検証した
+- localhostのComponent / Foundation Galleryを既存Figma Review FileへCaptureし、手順とDesign Review結果を記録した
+
 ## [0.4.4] - 2026-09-27
 
 - notes入力へ標準TextFieldを適用し、label・説明文・キーボード操作を実画面で確認した

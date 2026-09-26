@@ -137,12 +137,13 @@ function createWindow(): void {
 
   if (bounds?.maximized) win.maximize()
   lockDownWebContents(win.webContents)
-  // 雛形の開発サーバー内にある2つのGalleryだけを別窓で許可する。
+  // 雛形の開発サーバー内にあるGalleryだけを別窓で許可する。
   // 通常の遷移・任意のwindow.openはsecurity.tsの既定拒否を維持する。
   if (IS_TEMPLATE && !app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
     const galleryUrl = new URL('gallery.html', process.env['ELECTRON_RENDERER_URL']).href
     const componentGalleryUrl = new URL('component-gallery.html', process.env['ELECTRON_RENDERER_URL']).href
-    const galleryUrls = new Set([galleryUrl, componentGalleryUrl])
+    const foundationGalleryUrl = new URL('foundation-gallery.html', process.env['ELECTRON_RENDERER_URL']).href
+    const galleryUrls = new Set([galleryUrl, componentGalleryUrl, foundationGalleryUrl])
     win.webContents.setWindowOpenHandler(({ url }) =>
       galleryUrls.has(url)
         ? { action: 'allow', overrideBrowserWindowOptions: {
@@ -250,7 +251,7 @@ async function startup(): Promise<void> {
 
   // 自動バックアップは起動を待たせないよう投げっぱなしにする。
   // 失敗しても中で握って crash.log に残すだけ。
-  void backup.maybeAutoBackup()
+  const startupBackup = backup.maybeAutoBackup()
 
   registerWindowHandlers()
 
@@ -305,7 +306,11 @@ async function startup(): Promise<void> {
 
   // ── バックアップ ──
   handleTrusted(IPC_CHANNELS.backupCreate, () => backup.create())
-  handleTrusted(IPC_CHANNELS.backupList, () => backup.list())
+  // 初回一覧が自動作成より先に「空」と確定しないようにする。
+  handleTrusted(IPC_CHANNELS.backupList, async () => {
+    await startupBackup
+    return backup.list()
+  })
   handleTrusted(IPC_CHANNELS.backupOpenFolder, () => shell.openPath(backupDir()))
 
   // ── 診断情報 ──

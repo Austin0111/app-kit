@@ -8,6 +8,7 @@
 - 名前: **Proofline App Kit - Design Review**
 - URL: https://www.figma.com/design/AAJ0mwevHzAmjBHv9W20ok/Proofline-App-Kit---Design-Review
 - fileKey: `AAJ0mwevHzAmjBHv9W20ok`
+- 実地Capture: [Component Gallery（2026-09-27）](https://www.figma.com/design/AAJ0mwevHzAmjBHv9W20ok/Proofline-App-Kit---Design-Review?node-id=8-2)、[Foundation Gallery（2026-09-27）](https://www.figma.com/design/AAJ0mwevHzAmjBHv9W20ok/Proofline-App-Kit---Design-Review?node-id=10-2)
 
 新しいUI変更ごとにFileを作り直さず、このFileへCaptureを追加する。URLとfileKeyは通常の参照情報であり、認証情報は保存しない。派生アプリは製品固有のReview Fileを使う。
 <!-- APP_KIT_REVIEW_FILE_END -->
@@ -20,7 +21,7 @@
 
 1. UIを実装し、通常・Reduced Motionと対象画面幅で操作を確認する。
 2. 対象画面をブラウザーで表示できる開発用localhostで起動する。app-kitの接続確認には `npm run gallery` → `http://127.0.0.1:5174/component-gallery.html` を使える。実際に表示されたURLと状態を確認する。派生アプリは製品側の開発URLを使う。
-3. Figma連携のlocalhost Capture機能で、上記のReview Fileの`fileKey`を指定し、**実際に動く画面**を取り込む。Captureが返す一時scriptとcaptureIdはその実行限りで使用し、接続情報や一時scriptをrepoへ保存しない。既存のCaptureを消さず、対象と日時が分かる名前を付ける。連携によるCaptureが使えなくてもFigmaへアクセスできる場合は、localhostの実画面を画像として貼り、画像Captureであることを明記して視覚Reviewを行える。
+3. Figma連携のlocalhost Capture機能で、上記のReview Fileの`fileKey`を指定し、**実際に動く画面**を取り込む。ID発行だけでは送信されない。対象GalleryのHTMLへ連携が返す`capture.js`のscriptタグを一時的に加え、返されたcaptureId・endpointを含むlocalhost URLをブラウザーで開き、`pending → processing → completed`を確認する。scriptタグは取込み後に外し、captureIdや一時URLをrepoへ保存しない。既存のCaptureを消さず、対象と日時が分かる名前を付ける。連携によるCaptureが使えなくてもFigmaへアクセスできる場合は、localhostの実画面を画像として貼り、画像Captureであることを明記して視覚Reviewを行える。
 4. Figma上でCapture結果を見て、下記の観点を既存Design Systemと照合する。画像だけでは操作・ARIA・Reduced Motionを判定できないため、実画面の操作確認も併用する。
 5. 指摘のうち今回の範囲に入るものをコードへ反映し、画面・テスト・必要なら再Captureで確認する。判断が必要な新規Pattern / MotionはDesign Harvest / Lab候補に留める。
 
@@ -37,6 +38,8 @@ ElectronのpreloadやIPCに依存する画面がブラウザーのlocalhostで�
 - Proofline Design Systemとの整合: 既存の色、文字、Component、Motionとの違いに理由があるか。
 
 実装画面と既存Design Systemの根拠を照合し、指摘は対象箇所・理由・変更方針を残す。Reviewで直した内容は、通常のUIテストとスクリーンショット目視でも確かめる。未確定のMotion値はReviewだけで標準化せず、OWNER評価まで比較状態を維持する。
+
+2026-09-27の実地試験では、以前のCapture IDは`pending`のままだったが、一時scriptを読み込ませた新しい2件は完了した。Figma上の通常幅とlocalhostの通常・狭い幅を照合し、Foundation Galleryに階層・文字切れ・重なりの問題は見つからなかった。製品画面の通常Reviewでは、手動バックアップの標準Buttonを既存操作列と同じprimaryに修正し、lightテーマの警告文のコントラストを既存色のmixで改善した。Figma Captureは静止状態の視覚確認であり、キーボード・ARIA・Reduced Motionは実画面テストで確認する。
 
 ## Figmaを利用できない場合
 

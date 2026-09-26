@@ -1,6 +1,7 @@
 # Motion System v1
 
 Motionを選ぶ基準は、動かす要素の中に画像・動画・特殊な合成面があるかどうか。名前から選び、同じ目的の新規Motionを増やす前にGalleryで比較する。
+UIの基礎値とComponentの用途は [ui-foundations.md](ui-foundations.md) → [ui-components.md](ui-components.md) を参照する。本書はMotionとInteractionの契約を扱う。
 
 ## Motion Standard Policy
 

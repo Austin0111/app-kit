@@ -1,0 +1,25 @@
+:root { color-scheme: dark; font: 14px/1.5 system-ui, sans-serif; --bg: #15191f; --fg: #edf1f4; --muted: #a9bed0; --line: #43566f; --accent: #9bc8ff; background: var(--bg); color: var(--fg); }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.fg-page { max-width: 1440px; margin: auto; padding: 24px; }
+.fg-header { border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+.fg-header small { letter-spacing: .12em; }
+.fg-header h1 { margin: 2px 0 4px; font-size: 27px; }
+.fg-header p, .fg-note { color: var(--muted); }
+.fg-note { margin: 20px 0; }
+.fg-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.fg-card { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: var(--ak-foundation-radius-surface); background: #1b232d; }
+.fg-card h2 { margin: 0 0 2px; font-size: 18px; }
+.fg-id { color: var(--muted); overflow-wrap: anywhere; }
+.fg-card dl { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 8px 12px; margin: 16px 0; }
+.fg-card dt { color: var(--muted); }.fg-card dd { margin: 0; }
+.fg-preview { min-height: 76px; display: flex; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: var(--ak-foundation-radius-surface); }
+.fg-sample--spacing { display: flex; gap: var(--ak-foundation-space-related); }
+.fg-sample--spacing span, .fg-sample--control, .fg-sample--focus { padding: 8px 12px; background: #263449; color: var(--fg); border: 1px solid var(--line); border-radius: var(--ak-foundation-radius-control); }
+.fg-sample--surface { padding: 12px; border: 1px solid var(--line); border-radius: var(--ak-foundation-radius-surface); }
+.fg-sample--focus { font: inherit; cursor: pointer; }
+.fg-sample--focus:focus-visible { outline: var(--ak-foundation-focus-width) solid var(--accent); outline-offset: var(--ak-foundation-focus-offset); }
+.fg-sample--warning { color: var(--ak-foundation-color-warning); }
+.fg-sample--supporting { color: var(--muted); font-size: var(--ak-foundation-type-supporting); }
+.fg-card pre { overflow: auto; margin: 16px 0 0; padding: 12px; border-radius: var(--ak-foundation-radius-control); background: #101820; }
+@media (max-width: 740px) { .fg-grid { grid-template-columns: 1fr; } }

@@ -1,6 +1,6 @@
 # Proofline UI Component System v1
 
-標準Componentは `src/renderer/src/ui/index.ts` から使う。見本と用途のメタデータは `component-registry.ts`、Motionの意味・値・Surface Safety・Reduced Motion Contractは [ui-motion.md](ui-motion.md) を正本とする。既存画面を一括置換せず、新しいUIで標準を先に確認する。
+標準Componentは `src/renderer/src/ui/index.ts` から使う。見本と用途のメタデータは `component-registry.ts`、基礎値は [ui-foundations.md](ui-foundations.md)、Motionの意味・値・Surface Safety・Reduced Motion Contractは [ui-motion.md](ui-motion.md) を正本とする。既存画面を一括置換せず、新しいUIで標準を先に確認する。
 
 | Component | 主な用途 | Variant / Surface | Core Motion | 避ける場面 |
 |---|---|---|---|---|
@@ -43,7 +43,7 @@ import { EmptyState } from './ui'
   : <ItemList items={items} />)}
 ```
 
-製品UIではnotesとバックアップの2つの一覧が空になり得る。従来は見出しの件数以外に説明がなく、空の`ul`だけを表示していた。v1の実戦投入はnotesで行い、取得完了後のみEmptyStateを表示し、項目作成後は一覧へ切り替える。バックアップは既定で起動時に自動作成されるため、読み込みと自動作成の同期方法を決めるまで移行候補に留める。読み込み中・失敗時の表現は別契約とし、既存画面の他の一覧を一括置換しない。
+製品UIではnotesとバックアップの2つの一覧が空になり得る。従来は見出しの件数以外に説明がなく、空の`ul`だけを表示していた。notesは取得完了後のみEmptyStateを表示し、項目作成後は一覧へ切り替える。バックアップは起動時の自動作成が終わってから初回一覧を返し、`loading / loaded + empty / loaded + items / error`を区別する。本当に空と確認できた場合だけEmptyStateを表示する。読み込み失敗は警告文で伝え、既存のバックアップ作成・復元操作を維持する。
 
 ### 次Componentの棚卸しと選定
 
@@ -54,6 +54,18 @@ import { EmptyState } from './ui'
 | Toolbar / IconButton Group | タイトルバー操作とバックアップ操作列がある | TitleBarはOSのdrag領域契約があり、通常操作には既存Buttonが使える | 汎用化を見送る |
 | Field / Form layout | notesの一般入力とDialogのpromptがある | Dialogには固有のfocus・submit lifecycleがある。汎用フォームの重複は未確認 | 需要を観測 |
 | SearchField / Select / Checkbox / Tabs | 製品UIで該当する操作は未使用。Segmented ControlはMotion Galleryの実験例 | 実利用に基づくAPI・状態契約をまだ決められない | 先行実装しない |
+
+### 既存製品UIへの適用棚卸し
+
+| 判定 | 既存UIと対応Component | 判断・今回の扱い |
+|---|---|---|
+| A: そのまま寄せられる | notesの追加→Button、notesの削除記号→IconButton、手動バックアップ→Button | 低リスクの3箇所だけ適用。削除記号には項目名を含む`aria-label`を付けた |
+| A: 適用済み | notes入力→TextField、notesと読み込み済みで空のバックアップ一覧→EmptyState | 入力・空状態の契約を実画面で使う。バックアップは自動作成を待ってから空を判定 |
+| B: 専用挙動 | TitleBarの窓操作、VersionBadge、Dialogのprompt/確定、Toast | drag領域、focus/submit、通知のlifecycleを保持。形だけを標準に寄せない |
+| C: 見た目は似るが意味が異なる | 設定KVの状態表示ボタン、複数操作を持つnotes/バックアップの行、Design Systemへのリンク | Toggleへの変更は状態の読み上げと配置を含む判断が必要。行は単一操作Cardではなく、リンクはButtonではない |
+| D: 現状維持 | 開閉する補足情報がない画面、通常のsection、色入力、復元・診断・フォルダ操作、ErrorBoundaryの復旧操作 | Accordion/Disclosure・Panel・Cardの適用先を作るためにUIを変えない。色入力はTextFieldではない。残りの操作は確認を伴うため一括移行しない |
+
+Motionは上記dogfoodで新規追加しない。標準Button/IconButtonの既存feedbackのみを使い、EmptyStateは静止した状態表示とする。
 
 ## Button v1
 

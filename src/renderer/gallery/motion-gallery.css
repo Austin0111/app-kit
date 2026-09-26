@@ -2,7 +2,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; }
 button { font: inherit; cursor: pointer; color: inherit; background: #263449; border: 1px solid #43566f; border-radius: 7px; padding: 8px 11px; }
-button:focus-visible { outline: 2px solid #9bc8ff; outline-offset: 2px; }
+button:focus-visible { outline: var(--ak-foundation-focus-width) solid #9bc8ff; outline-offset: var(--ak-foundation-focus-offset); }
 .mg-page { max-width: 1440px; margin: auto; padding: 24px; }
 .mg-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; border-bottom: 1px solid #354253; padding-bottom: 18px; }
 .mg-header h1 { margin: 2px 0 4px; font-size: 27px; }
@@ -28,7 +28,7 @@ button:focus-visible { outline: 2px solid #9bc8ff; outline-offset: 2px; }
 .mg-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .mg-tags span { background: #2b4056; border-radius: 99px; padding: 2px 9px; font-size: 12px; }
 .mg-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
-.mg-stage { min-height: 180px; padding: 14px; border: 1px solid #46566a; border-radius: 8px; display: grid; align-content: start; justify-items: start; gap: 20px; overflow: hidden; }
+.mg-stage { min-height: 180px; padding: 14px; border: 1px solid #46566a; border-radius: var(--ak-foundation-radius-surface); display: grid; align-content: start; justify-items: start; gap: 20px; overflow: hidden; }
 .mg-stage-label { color: #a9bed0; font-size: 12px; font-weight: bold; }
 .mg-sample { background: #33465b; border: 1px solid #6b829a; border-radius: 8px; padding: 14px; max-width: 100%; }
 .mg-sample img { display: block; width: 180px; max-width: 100%; border-radius: 5px; }

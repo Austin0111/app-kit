@@ -63,7 +63,7 @@ section {
 .design-system__link {
   display: inline-block;
   padding: 8px 14px;
-  border-radius: 6px;
+  border-radius: var(--ak-foundation-radius-control);
   background: var(--accent);
   color: #fff;
   text-decoration: none;
@@ -77,18 +77,18 @@ section {
 
 .muted {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--ak-foundation-type-supporting);
 }
 
 /* 入れ直しが要る等、利用者の対応が必要なことを示す */
 .warn {
-  color: #f0a020;
-  font-size: 13px;
+  color: var(--ak-foundation-color-warning);
+  font-size: var(--ak-foundation-type-supporting);
 }
 
 .row {
   display: flex;
-  gap: 8px;
+  gap: var(--ak-foundation-space-related);
 }
 
 .notes__entry { align-items: end; }
@@ -104,7 +104,7 @@ input {
   padding: 8px 10px;
   background: #1e1e24;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--ak-foundation-radius-control);
   color: inherit;
 }
 
@@ -112,7 +112,7 @@ button {
   padding: 8px 14px;
   background: var(--accent);
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--ak-foundation-radius-control);
   color: #fff;
   cursor: pointer;
 }
@@ -270,7 +270,7 @@ input[type='color'] {
 .crash__title {
   margin: 0 0 12px;
   font-size: 18px;
-  color: #f0a020;
+  color: var(--ak-foundation-color-warning);
 }
 
 .crash__lead {
@@ -354,7 +354,7 @@ input[type='color'] {
 
 .toast {
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: var(--ak-foundation-radius-surface);
   border: 1px solid var(--line);
   background: #22222a;
   color: var(--fg);
@@ -451,6 +451,8 @@ input[type='color'] {
   --fg: #1a1a1e;
   --muted: #6b6b73;
   --line: #dcdce2;
+  /* 既存の警告色と文字色を半分ずつ混ぜ、明るい面でも警告文を読めるようにする。 */
+  --ak-foundation-color-warning: color-mix(in srgb, #f0a020 50%, var(--fg));
 }
 
 .app-shell[data-theme='light'] {

@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { MotionGallery } from './MotionGallery'
+import '../src/foundation/tokens.css'
 import '../src/motion/tokens.css'
 import '../src/motion/presets.css'
 import './motion-gallery.css'

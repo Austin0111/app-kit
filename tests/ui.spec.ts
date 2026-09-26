@@ -36,13 +36,17 @@ test.describe('UI 部品', () => {
     await page.keyboard.press('Tab')
     await expect(input).toBeFocused()
     expect(await input.evaluate((element) => getComputedStyle(element).outlineStyle)).toBe('solid')
+    await page.keyboard.press('Tab')
+    const addButton = page.getByRole('button', { name: '追加' })
+    await expect(addButton).toBeFocused()
+    expect(await addButton.evaluate((element) => getComputedStyle(element).outlineStyle)).toBe('solid')
     await input.fill('標準入力の確認')
     await input.press('Enter')
     await expect(input).toHaveValue('')
     await expect(page.getByText('標準入力の確認')).toBeVisible()
     await expect(emptyNotes).toHaveCount(0)
-    await page.getByRole('button', { name: '×' }).first().click()
-    await page.getByRole('button', { name: '削除' }).click()
+    await page.getByRole('button', { name: '標準入力の確認を削除' }).click()
+    await page.locator('dialog.dialog').getByRole('button', { name: '削除' }).click()
     await expect(page.getByText('標準入力の確認')).toBeHidden()
     await expect(emptyNotes).toBeVisible()
     await page.locator('.toast--success').click()
@@ -56,7 +60,7 @@ test.describe('UI 部品', () => {
     await page.getByRole('button', { name: '追加' }).click()
     await expect(page.getByText('消さない項目')).toBeVisible()
 
-    await page.getByRole('button', { name: '×' }).first().click()
+    await page.getByRole('button', { name: '消さない項目を削除' }).click()
     await expect(page.locator('dialog.dialog')).toBeVisible()
     await page.getByRole('button', { name: 'やめる' }).click()
 
@@ -67,8 +71,8 @@ test.describe('UI 部品', () => {
   test('確認ダイアログ: 削除を押すと消えてトーストが出る', async () => {
     const { page } = ctx
 
-    await page.getByRole('button', { name: '×' }).first().click()
-    await page.getByRole('button', { name: '削除' }).click()
+    await page.getByRole('button', { name: '消さない項目を削除' }).click()
+    await page.locator('dialog.dialog').getByRole('button', { name: '削除' }).click()
 
     await expect(page.getByText('消さない項目')).toBeHidden()
     await expect(page.locator('.toast--success')).toBeVisible()
