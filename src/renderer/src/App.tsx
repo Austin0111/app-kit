@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Api } from '../../preload'
 import { useSettings } from './useSettings'
-import { useDialog, useToast, TitleBar, VersionBadge } from './ui'
+import { EmptyState, useDialog, useToast, TextField, TitleBar, VersionBadge } from './ui'
 import { DISPLAY_NAME, IS_TEMPLATE } from '../../shared/app-meta'
 
 declare global {
@@ -32,6 +32,7 @@ export default function App(): JSX.Element {
   const toast = useToast()
   const dialog = useDialog()
   const [notes, setNotes] = useState<Note[]>([])
+  const [notesLoaded, setNotesLoaded] = useState(false)
   const [draft, setDraft] = useState('')
   const [backups, setBackups] = useState<BackupEntry[]>([])
   const [apiKeyStatus, setApiKeyStatus] = useState<string>('unset')
@@ -41,7 +42,7 @@ export default function App(): JSX.Element {
   if (boom) throw new Error('確認用: わざと描画に失敗させた')
 
   useEffect(() => {
-    window.api.notes.list().then(setNotes)
+    window.api.notes.list().then((items) => { setNotes(items); setNotesLoaded(true) })
     window.api.backup.list().then(setBackups)
     window.api.secrets.status('demoApiKey').then(setApiKeyStatus)
   }, [])
@@ -212,8 +213,11 @@ export default function App(): JSX.Element {
 
           <section>
             <h2>notes（{notes.length}件）</h2>
-            <div className="row">
-              <input
+            <div className="row notes__entry">
+              <TextField
+                className="notes__field"
+                label="メモの内容"
+                description="Enterキーでも追加できます"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addNote()}
@@ -221,7 +225,8 @@ export default function App(): JSX.Element {
               />
               <button onClick={addNote}>追加</button>
             </div>
-            <ul>
+            {notesLoaded && notes.length === 0 && <EmptyState title="まだメモがありません" description="上の入力欄からメモを追加できます。" />}
+            {notes.length > 0 && <ul>
               {notes.map((n) => (
                 <li key={n.id}>
                   <span>{n.body}</span>
@@ -231,7 +236,7 @@ export default function App(): JSX.Element {
                   </span>
                 </li>
               ))}
-            </ul>
+            </ul>}
           </section>
 
           <section>

@@ -23,6 +23,7 @@
 - 新しいUIでは `docs/ui-components.md` の標準Componentを先に確認し、既存の用途・Surfaceに合うものを再利用する。
 - 新しい汎用操作ボタンは、`docs/ui-components.md` の標準Button / IconButtonを優先する。
 - 新規の一般的な単一行テキスト入力UIでは、`docs/ui-components.md` の標準TextFieldを優先する。
+- 読み込み済み一覧の空状態には、`docs/ui-components.md` の標準EmptyStateを確認する。
 
 - 依存導入は README の順序どおり `npm install --ignore-scripts`、`node node_modules/electron/install.js`、`npx electron-rebuild -w better-sqlite3` を使う。
 - 雛形からアプリを作る前に `scripts/create-app.mjs` と README 末尾の注意事項を確認する。

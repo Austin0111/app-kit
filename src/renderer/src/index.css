@@ -91,6 +91,9 @@ section {
   gap: 8px;
 }
 
+.notes__entry { align-items: end; }
+.notes__field { flex: 1; }
+
 /* 診断など基盤操作が増えても、狭い窓で右端へはみ出させない。 */
 .backup-actions {
   flex-wrap: wrap;

@@ -23,6 +23,32 @@ test.describe('UI 部品', () => {
     await expect(button).toHaveAttribute('aria-label', '最大化')
   })
 
+  test('notes入力は標準TextFieldの説明とキーボード操作を保つ', async () => {
+    const { page } = ctx
+    const input = page.getByRole('textbox', { name: 'メモの内容' })
+    const emptyNotes = page.getByRole('status').filter({ hasText: 'まだメモがありません' })
+    await expect(emptyNotes).toBeVisible()
+    const descriptionId = await input.getAttribute('aria-describedby')
+    expect(descriptionId).toBeTruthy()
+    await expect(page.locator(`[id="${descriptionId}"]`)).toHaveText('Enterキーでも追加できます')
+    await input.focus()
+    await page.keyboard.press('Shift+Tab')
+    await page.keyboard.press('Tab')
+    await expect(input).toBeFocused()
+    expect(await input.evaluate((element) => getComputedStyle(element).outlineStyle)).toBe('solid')
+    await input.fill('標準入力の確認')
+    await input.press('Enter')
+    await expect(input).toHaveValue('')
+    await expect(page.getByText('標準入力の確認')).toBeVisible()
+    await expect(emptyNotes).toHaveCount(0)
+    await page.getByRole('button', { name: '×' }).first().click()
+    await page.getByRole('button', { name: '削除' }).click()
+    await expect(page.getByText('標準入力の確認')).toBeHidden()
+    await expect(emptyNotes).toBeVisible()
+    await page.locator('.toast--success').click()
+    await expect(page.locator('.toast--success')).toHaveCount(0)
+  })
+
   test('確認ダイアログ: やめるを押すと何も起きない', async () => {
     const { page } = ctx
 

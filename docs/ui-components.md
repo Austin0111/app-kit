@@ -10,6 +10,7 @@
 | Card | 情報表示または単一操作 | Static / Interactive / disabled、Standard / Media Safe | CardLiftSubtle（Standard Interactiveのみ） | 複数操作の内包、画像入りCardへのlift |
 | Button / IconButton | 汎用操作 | primary / secondary / ghost / danger、standard / compact | fast tokenによる色の反応 | Toggle、画面遷移、タイトルバー等の専用操作 |
 | TextField | 単一行の一般的なテキスト入力 | standard、required / disabled / readonly / invalid | なし | 検索・数値・パスワード・複数行・選択肢 |
+| EmptyState | 読み込み済み一覧の空状態 | 空 / 内容あり、Standard | なし | 読み込み中・失敗状態、単なる余白埋め |
 
 `Panel` は `surface` を必須にする。画像入りには `media-safe` を指定し、動画・WebContentsView等には `opaque-media` を指定する。Opaque Mediaはv1ではMotionなし。`Card` は静的ならdiv、interactiveならbuttonで、画像入りの `media-safe` はliftしない。Motionを使う必要がない `Panel` は静止が既定。
 
@@ -28,7 +29,31 @@ labelは`htmlFor`でinputへ結び、description、error、呼び出し側の`ar
 
 短い設定名や自由入力に推奨する。検索・数値・パスワード・複数行・選択肢は、それぞれSearchField / NumberField / PasswordField / TextArea / Selectの別候補とし、`TextField`の`type`を変えて流用しない。prefix / suffix / iconやvalidation frameworkもv1には含めない。
 
-棚卸しでは、製品UIのテキスト入力は`App.tsx`のnotes入力（controlled、placeholderのみ、labelなし）と`dialog.tsx`のprompt入力（uncontrolled、タイトルのみ、`autoFocus`）の2箇所。色選択inputは別用途。search / number / password / selectの実画面利用はなく、Motion Galleryのtextareaはコピー用の一時DOMだけである。入力の見た目は`index.css`のglobal `input`とDialog局所CSSに分散し、focus-visible・invalid・disabledの共通契約がなかった。notes入力はlabelと配置を整理してから段階的に移行する候補。Dialog promptはfocusと送信lifecycleを保つ必要があるため、専用UIとして別途評価する。既存画面は一括置換せず、v1はComponent Galleryで実際に利用する。
+棚卸しでは、製品UIのテキスト入力は`App.tsx`のnotes入力と`dialog.tsx`のprompt入力の2箇所。色選択inputは別用途。search / number / password / selectの実画面利用はなく、Motion Galleryのtextareaはコピー用の一時DOMだけである。入力の見た目は`index.css`のglobal `input`とDialog局所CSSに分散していた。notes入力は標準TextFieldを適用し、label・説明文・focus-visibleとEnterでの追加を実画面で確認した。Dialog promptはfocusと送信lifecycleを保つ必要があるため、専用UIとして別途評価する。既存画面は一括置換しない。
+
+## EmptyState v1
+
+`EmptyState`は、**読み込みが終わり、実際に項目数が0**の一覧へ使う。`title`と`description`を必須にし、空である事実と次の操作を文字で示す。`div`の`role="status"`で、項目の有無が変わったときに状態を伝える。内容があるときは通常の一覧を表示する。loadingや取得失敗を空と混同しない。装飾・アイコン・action variant・Motionはv1に含めない。
+
+```tsx
+import { EmptyState } from './ui'
+
+{loaded && (items.length === 0
+  ? <EmptyState title="まだ項目がありません" description="上の操作から追加できます。" />
+  : <ItemList items={items} />)}
+```
+
+製品UIではnotesとバックアップの2つの一覧が空になり得る。従来は見出しの件数以外に説明がなく、空の`ul`だけを表示していた。v1の実戦投入はnotesで行い、取得完了後のみEmptyStateを表示し、項目作成後は一覧へ切り替える。バックアップは既定で起動時に自動作成されるため、読み込みと自動作成の同期方法を決めるまで移行候補に留める。読み込み中・失敗時の表現は別契約とし、既存画面の他の一覧を一括置換しない。
+
+### 次Componentの棚卸しと選定
+
+| 候補 | 実利用・重複 | Accessibilityと再利用価値 | 判断 |
+|---|---|---|---|
+| EmptyState | 製品画面のnotesとバックアップ、計2つの空になり得る一覧。案内なしの空`ul`が重複。バックアップは既定で自動作成 | 空と読み込み中を区別し、次の操作を文字で示せる。notesで実戦投入 | **今回標準化** |
+| Status / Badge | 製品画面には版・更新通知、APIキー状態、statusbarがある | 表示位置と操作・更新契約が異なり、単一APIへ寄せると特殊動作を抱え込む | 現行専用UIを維持 |
+| Toolbar / IconButton Group | タイトルバー操作とバックアップ操作列がある | TitleBarはOSのdrag領域契約があり、通常操作には既存Buttonが使える | 汎用化を見送る |
+| Field / Form layout | notesの一般入力とDialogのpromptがある | Dialogには固有のfocus・submit lifecycleがある。汎用フォームの重複は未確認 | 需要を観測 |
+| SearchField / Select / Checkbox / Tabs | 製品UIで該当する操作は未使用。Segmented ControlはMotion Galleryの実験例 | 実利用に基づくAPI・状態契約をまだ決められない | 先行実装しない |
 
 ## Button v1
 

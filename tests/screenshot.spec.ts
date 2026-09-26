@@ -39,6 +39,11 @@ test('各画面幅のスクリーンショットを撮る', async () => {
       })
     }
 
+    // 空状態と入力欄を、狭い窓でも画面内に収めて目視する。
+    await ctx.page.setViewportSize({ width: 640, height: 720 })
+    await ctx.page.locator('.app').evaluate((app) => { app.scrollTop = 180 })
+    await ctx.page.screenshot({ path: join(OUT_DIR, 'notes-empty-narrow.png') })
+
     // ダイアログが開いている状態も撮る（重なりの確認用）
     await ctx.page.getByPlaceholder('何か書いて Enter').fill('見た目の確認用')
     await ctx.page.getByRole('button', { name: '追加' }).click()
