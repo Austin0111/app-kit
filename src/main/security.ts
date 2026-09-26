@@ -36,7 +36,7 @@ export function registeredIpcChannels(): string[] {
   return [...registeredChannels].sort()
 }
 
-/** 任意の遷移と子画面を拒否。開発Galleryの子画面だけ正確なURLを許可する。 */
+/** 任意の遷移と子画面を拒否。明示された同一URLへの遷移だけ許可する。 */
 export function lockDownWebContents(contents: WebContents, allowedUrl?: string): void {
   contents.setWindowOpenHandler(() => ({ action: 'deny' }))
   contents.on('will-navigate', (event, url) => {

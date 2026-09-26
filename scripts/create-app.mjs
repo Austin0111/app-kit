@@ -40,7 +40,14 @@ const DEVELOPMENT_ONLY = new Set([
   'src/renderer/component-gallery.html',
   'src/renderer/component-gallery',
   'src/renderer/foundation-gallery.html',
-  'src/renderer/foundation-gallery'
+  'src/renderer/foundation-gallery',
+  'src/renderer/src/ui/component-registry.ts',
+  'scripts/create-app.mjs',
+  'tests/component-gallery.spec.ts',
+  'tests/motion-gallery.spec.ts',
+  'tests/design-system-entry.spec.ts',
+  'tests/generator.spec.ts',
+  'docs/settings-interactions.md'
 ])
 
 // ---------------------------------------------------------------- 引数
@@ -133,6 +140,37 @@ replaceIn('src/main/update-check.ts', [[`const REPO = 'app-kit'`, `const REPO = 
 
 replaceIn('src/renderer/index.html', [['<title>app-kit</title>', `<title>${displayName}</title>`]])
 
+/** Remove a template-only source or documentation section from the derived app. */
+function removeMarkedSection(relPath, start, end) {
+  const path = join(targetDir, relPath)
+  let source = readFileSync(path, 'utf8')
+  const first = source.indexOf(start)
+  const last = source.indexOf(end, first + start.length)
+  if (first < 0 || last < first) fail(`${relPath} の開発専用境界が見つからない`)
+  const lineStart = source.lastIndexOf('\n', first - 1) + 1
+  const lineEnd = source.indexOf('\n', last)
+  source = source.slice(0, lineStart) + source.slice(lineEnd < 0 ? source.length : lineEnd + 1)
+  writeFileSync(path, source)
+}
+
+removeMarkedSection('src/renderer/src/App.tsx', 'APP_KIT_DEVELOPMENT_ENTRY_START', 'APP_KIT_DEVELOPMENT_ENTRY_END')
+removeMarkedSection('src/main/index.ts', 'APP_KIT_GALLERY_WINDOW_START', 'APP_KIT_GALLERY_WINDOW_END')
+removeMarkedSection('src/renderer/src/index.css', 'APP_KIT_DEVELOPMENT_STYLE_START', 'APP_KIT_DEVELOPMENT_STYLE_END')
+replaceIn('src/renderer/src/App.tsx', [['DISPLAY_NAME, IS_TEMPLATE', 'DISPLAY_NAME']])
+replaceIn('src/main/index.ts', [['INTERNAL_NAME, IS_TEMPLATE', 'INTERNAL_NAME']])
+
+for (const relPath of ['docs/ui-components.md', 'docs/ui-foundations.md', 'docs/ui-motion.md', 'docs/ui-design-review.md']) {
+  const path = join(targetDir, relPath)
+  let source = readFileSync(path, 'utf8')
+  while (source.includes('<!-- APP_KIT_ONLY_START -->')) {
+    const first = source.indexOf('<!-- APP_KIT_ONLY_START -->')
+    const last = source.indexOf('<!-- APP_KIT_ONLY_END -->', first)
+    if (last < first) fail(`${relPath} の開発専用文書境界が閉じていない`)
+    source = source.slice(0, first) + source.slice(last + '<!-- APP_KIT_ONLY_END -->'.length)
+  }
+  writeFileSync(path, source)
+}
+
 // app-kit専用Figma Fileの参照を派生アプリへ持ち込まない。
 // Review手順は引き継ぎ、派生先で製品固有のFileを記録できる形にする。
 {
@@ -143,7 +181,7 @@ replaceIn('src/renderer/index.html', [['<title>app-kit</title>', `<title>${displ
   const first = text.indexOf(start)
   const last = text.indexOf(end)
   if (first < 0 || last < first) fail('UI Review Fileの境界が見つからない')
-  writeFileSync(path, text.slice(0, first) + `## ${displayName}専用Review File\n\n派生アプリにはapp-kitのFigma Fileを引き継がない。初回のsubstantial UI workで製品固有のReview Fileを確認・作成し、URLとfileKeyをここへ記録する。\n` + text.slice(last + end.length))
+  writeFileSync(path, text.slice(0, first) + `## ${displayName}専用Review File\n\nReview Fileは未設定。初回のsubstantial UI workで製品固有のReview Fileを確認・作成し、URLとfileKeyをここへ記録する。\n` + text.slice(last + end.length))
 }
 
 // package.json は構造を壊さないよう JSON として扱う
@@ -226,6 +264,19 @@ npm run verify    型・名前・ビルド・テストをまとめて確認
 `
 )
 console.log('  README.md … アプリ用に置き換え')
+
+writeFileSync(join(targetDir, 'AGENTS.md'), `# ${displayName} 開発指示
+
+このアプリの製品仕様を優先する。新規UIでは [docs/ui-components.md](docs/ui-components.md) の既存標準Componentを先に確認し、用途とsemanticsが合う場合に再利用する。無理な置換や、実需要のないComponent追加はしない。OWNER向けUIは日本語を優先する。
+
+- Foundationは [docs/ui-foundations.md](docs/ui-foundations.md) の既存Tokenを直書きより優先し、実需要なしにTokenを増やさない。
+- Motionは [docs/ui-motion.md](docs/ui-motion.md) を正本とする。不要なら動かさず、必要ならCoreを優先する。内容物でStandard / Media Safe / Opaque Mediaを選び、Reduced Motionでも状態情報を残す。
+- substantial UI work（新規画面、大きなレイアウト変更、新規Reusable Component、大幅なVisual Redesign）は、実装後に [docs/ui-design-review.md](docs/ui-design-review.md) に従ってDesign Reviewを行う。製品固有のFigma Fileが使えない場合は通常のUI Reviewを行い、理由を報告する。
+- TypeScript / TSX編集後は \`npm run typecheck\`、機能・UI変更後は \`npm run verify\`。テスト結果と \`test-results/screenshots/\` の画像を実際に確認し、Console Errorを残さない。
+- テストは \`tests/helpers.ts\` の一時userDataを使い、実ユーザーデータへ干渉しない。既存変更を消さず、pushは明示指示がある場合のみ行う。
+- 機能変更のまとまりごとにpackage.jsonとpackage-lock.jsonのversionを整合させ、CHANGELOGを追記してローカルcommitする。
+`)
+writeFileSync(join(targetDir, 'CLAUDE.md'), `# ${displayName} 作業指示\n\nこのプロジェクトの作業規約は [AGENTS.md](AGENTS.md) に定める。\n`)
 
 // ---------------------------------------------------------------- git
 

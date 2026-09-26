@@ -28,4 +28,6 @@ lightテーマの元の警告色は背景`#f7f7f8`とのコントラスト比が
 
 新規UIでは既存tokenが用途に合えば直書きより優先する。異なる意味の値を見た目だけで寄せず、実利用と比較・Reviewが揃うまでtokenを増やさない。Token本体は派生アプリへ含め、開発用Galleryは含めない。
 
+<!-- APP_KIT_ONLY_START -->
 開発時は `npm run gallery` → `http://127.0.0.1:5174/foundation-gallery.html`、または開発画面の「デザインシステム」→「標準Foundationの見本帳を開く」で確認する。各項目に日本語名、正式Token名、CSSから読んだ実値、用途、使用例を表示する。
+<!-- APP_KIT_ONLY_END -->

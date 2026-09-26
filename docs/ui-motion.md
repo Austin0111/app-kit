@@ -50,7 +50,9 @@ Accordion・Switch型Toggle・Panel・Cardは `docs/ui-components.md` の標準C
 
 rendererの`main.tsx`がtokensとpresetsを読み込む。必要な箇所に`ak-motion-*`クラスを指定する。画像の初回表示は`ImageFirstPaint`をimportする。registryのコード例・用途・避ける場面を確認する。
 
+<!-- APP_KIT_ONLY_START -->
 雛形app-kitを`npm run dev`で開いたら、画面の「デザインシステム」→「動きの見本帳（Motion Gallery）を開く」から既存Galleryを別窓で開ける。単独閲覧には引き続き`npm run gallery`と`http://127.0.0.1:5174/gallery.html`を使える。「両方再生」で通常/動きを抑える比較を同時にやり直せる。日本語名と正式IDはregistryのメタデータから表示し、詳細の「IDをコピー」で指示用の正式IDを取得できる。生成アプリではGallery UIを除外し、Motion本体と本書を引き継ぐ。入口も雛形の開発画面でのみ表示する。
+<!-- APP_KIT_ONLY_END -->
 
 Toastの既存表示とDialogの即時closeはv1で変更しない。ToastのVideoDeck版は比較用。Dialog Exitはclosing stateからanimation終了後にnative closeするBehaviorとしてLabに置く。
 

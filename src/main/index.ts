@@ -137,6 +137,7 @@ function createWindow(): void {
 
   if (bounds?.maximized) win.maximize()
   lockDownWebContents(win.webContents)
+  // APP_KIT_GALLERY_WINDOW_START
   // 雛形の開発サーバー内にあるGalleryだけを別窓で許可する。
   // 通常の遷移・任意のwindow.openはsecurity.tsの既定拒否を維持する。
   if (IS_TEMPLATE && !app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
@@ -160,6 +161,7 @@ function createWindow(): void {
       )
     })
   }
+  // APP_KIT_GALLERY_WINDOW_END
   installWindowRecovery(win)
   win.once('ready-to-show', () =>
     process.env.APP_E2E === '1' ? win.showInactive() : win.show()

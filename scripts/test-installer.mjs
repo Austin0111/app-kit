@@ -26,6 +26,7 @@ function run(path, args) {
 
 function installedRegistrations() {
   const command = [
+    '[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new()',
     "$roots=@('HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*')",
     '$found=foreach($root in $roots){Get-ItemProperty $root -ErrorAction SilentlyContinue|Where-Object{$_.DisplayName -eq $env:APP_INSTALLER_PRODUCT -or $_.DisplayName -like "$env:APP_INSTALLER_PRODUCT *"}|ForEach-Object{[pscustomobject]@{DisplayName=$_.DisplayName;UninstallString=$_.UninstallString}}}',
     'ConvertTo-Json -Compress -InputObject @($found)'
@@ -41,6 +42,7 @@ function installedRegistrations() {
 
 function installationLocations() {
   const command = [
+    '[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new()',
     "$roots=@('HKCU:\\Software','HKCU:\\Software\\WOW6432Node','HKLM:\\Software','HKLM:\\Software\\WOW6432Node')",
     '$found=foreach($root in $roots){$path=Join-Path $root $env:APP_INSTALLER_GUID; $item=Get-ItemProperty -LiteralPath $path -ErrorAction SilentlyContinue; if($item){[pscustomobject]@{Path=$path;InstallLocation=$item.InstallLocation}}}',
     'ConvertTo-Json -Compress -InputObject @($found)'
@@ -56,6 +58,7 @@ function installationLocations() {
 
 function shortcutPaths() {
   const command = [
+    '[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new()',
     '$shortcutName="$($env:APP_INSTALLER_PRODUCT).lnk"',
     '$paths=@((Join-Path ([Environment]::GetFolderPath("Desktop")) $shortcutName),(Join-Path ([Environment]::GetFolderPath("Programs")) $shortcutName))',
     'ConvertTo-Json -Compress -InputObject @($paths|Where-Object{Test-Path -LiteralPath $_})'

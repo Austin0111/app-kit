@@ -60,6 +60,7 @@ section {
   border-top: 1px solid var(--line);
 }
 
+/* APP_KIT_DEVELOPMENT_STYLE_START */
 .design-system__link {
   display: inline-block;
   padding: 8px 14px;
@@ -74,6 +75,7 @@ section {
   outline: 2px solid var(--fg);
   outline-offset: 3px;
 }
+/* APP_KIT_DEVELOPMENT_STYLE_END */
 
 .muted {
   color: var(--muted);

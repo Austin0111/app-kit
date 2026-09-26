@@ -51,7 +51,7 @@ try {
       // 生成物は node_modules 配下に置く（.gitignore 済みで、掃除も npm 任せにできる）
       '--incremental',
       '--tsBuildInfoFile',
-      join(ROOT, 'node_modules', '.cache', 'app-kit-tsbuildinfo')
+      join(ROOT, 'node_modules', '.cache', 'typecheck-hook.tsbuildinfo')
     ],
     { cwd: ROOT, stdio: 'pipe', encoding: 'utf8' }
   )

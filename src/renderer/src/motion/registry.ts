@@ -21,7 +21,7 @@ export const motionStatusLabels: Record<MotionStatus, string> = { Core: '標準'
 export const motionKindLabels: Record<MotionKind, string> = { token: 'トークン', preset: 'プリセット', behavior: '動作制御', recipe: '特殊用途' }
 export const motionSurfaceLabels: Record<MotionSurface, string> = { standard: '標準UI', 'media-safe': '画像向け安全', 'opaque-media': '不透明なメディア面' }
 export const toastComparisonNotes = {
-  'toast-compact': 'app-kit現行 / 登場 140ms',
+  'toast-compact': '標準初期値 / 登場 140ms',
   'toast-rise': 'VideoDeck由来 / 登場 200ms',
   'toast-drop': 'VideoDeck由来 / 退場 180ms'
 } as const

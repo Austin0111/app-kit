@@ -104,6 +104,15 @@ export default function App(): JSX.Element {
     }
   }
 
+  async function refreshApiKeyStatus(): Promise<void> {
+    setApiKeyStatus('loading')
+    try {
+      setApiKeyStatus(await window.api.secrets.status('demoApiKey'))
+    } catch {
+      setApiKeyStatus('error')
+    }
+  }
+
   async function createBackup(): Promise<void> {
     try {
       await window.api.backup.create()
@@ -179,6 +188,7 @@ export default function App(): JSX.Element {
             雛形の動作確認。{loaded ? '設定を読み込み済み' : '設定を読み込み中…'}
           </p>
 
+          {/* APP_KIT_DEVELOPMENT_ENTRY_START */}
           {window.location.protocol === 'http:' && IS_TEMPLATE && (
             <section aria-labelledby="design-system-heading">
               <h2 id="design-system-heading">デザインシステム</h2>
@@ -193,6 +203,7 @@ export default function App(): JSX.Element {
               </a>
             </section>
           )}
+          {/* APP_KIT_DEVELOPMENT_ENTRY_END */}
 
           <section>
             <h2>設定KV</h2>
@@ -224,13 +235,14 @@ export default function App(): JSX.Element {
 
           <section>
             <h2>秘密情報（APIキー等）</h2>
-            <p className={apiKeyStatus === 'undecryptable' || apiKeyStatus === 'error' ? 'warn' : 'muted'} role="status">
+            <p className={apiKeyStatus === 'undecryptable' || apiKeyStatus === 'error' ? 'warn' : 'muted'} role={apiKeyStatus === 'error' ? 'alert' : 'status'}>
               状態: {SECRET_LABEL[apiKeyStatus] ?? apiKeyStatus}
             </p>
             <div className="row">
               <Button onClick={setApiKey} disabled={apiKeyStatus === 'loading'}>
                 {apiKeyStatus === 'unset' || apiKeyStatus === 'error' ? '設定する' : '入れ直す'}
               </Button>
+              {apiKeyStatus === 'error' && <Button onClick={refreshApiKeyStatus}>状態を再確認</Button>}
               {!['loading', 'unset', 'error'].includes(apiKeyStatus) && <Button variant="danger" onClick={clearApiKey}>消す</Button>}
             </div>
             <p className="muted">

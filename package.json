@@ -1,6 +1,6 @@
 {
   "name": "app-kit",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "新規デスクトップアプリの雛形（electron-vite + React + TypeScript + better-sqlite3 + Drizzle）",
   "main": "./out/main/index.js",
   "author": "Austin",
