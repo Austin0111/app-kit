@@ -1,0 +1,5 @@
+/* A small composition pattern for adjacent controls. The screen owns alignment and wrapping. */
+.ak-layout-inline {
+  display: flex;
+  gap: var(--ak-foundation-space-related);
+}

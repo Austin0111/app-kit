@@ -43,7 +43,15 @@ test('生成した派生アプリが名前整合・型検査・DB生成・build�
     expect(readFileSync(join(target, 'src/shared/app-meta.ts'), 'utf8')).toContain('export const IS_TEMPLATE = false')
     expect(readFileSync(join(target, 'src/renderer/src/App.tsx'), 'utf8')).not.toContain('component-gallery.html')
     expect(readFileSync(join(target, 'src/main/index.ts'), 'utf8')).not.toContain('APP_KIT_GALLERY_WINDOW_START')
-    expect(readFileSync(join(target, 'src/renderer/src/index.css'), 'utf8')).not.toContain('.design-system__link')
+    expect(existsSync(join(target, 'src/renderer/src/index.css'))).toBe(false)
+    expect(existsSync(join(target, 'src/renderer/src/dev'))).toBe(false)
+    expect(readFileSync(join(target, 'src/renderer/src/main.tsx'), 'utf8')).not.toContain('design-system.css')
+    expect(readFileSync(join(target, 'src/renderer/src/base.css'), 'utf8')).not.toContain('overflow: hidden')
+    const starterCss = readFileSync(join(target, 'src/renderer/src/starter.css'), 'utf8')
+    expect(starterCss).toContain('.app__content > section')
+    expect(starterCss).not.toMatch(/^(?:button|input|section|ul|li|h1|h2)\s*\{/m)
+    expect(readFileSync(join(target, 'src/renderer/src/layout/inline.css'), 'utf8')).toContain('.ak-layout-inline')
+    expect(readFileSync(join(target, 'src/renderer/src/ui/chrome.css'), 'utf8')).toContain('.dialog__panel')
     expect(existsSync(join(target, 'src/renderer/src/motion/presets.css'))).toBe(true)
     expect(existsSync(join(target, 'src/renderer/src/motion/registry.ts'))).toBe(true)
     expect(existsSync(join(target, 'src/renderer/src/ui/Accordion.tsx'))).toBe(true)
@@ -60,7 +68,7 @@ test('生成した派生アプリが名前整合・型検査・DB生成・build�
     expect(reviewDoc).not.toContain('Proofline App Kit - Design Review')
     expect(reviewDoc).not.toContain('component-gallery.html')
     const instructions = readFileSync(join(target, 'AGENTS.md'), 'utf8')
-    for (const principle of ['ui-components.md', 'ui-foundations.md', 'ui-motion.md', 'ui-design-review.md', 'Reduced Motion', 'Media Safe', '実需要']) {
+    for (const principle of ['ui-components.md', 'ui-foundations.md', 'ui-layout.md', 'ui-motion.md', 'ui-design-review.md', 'Reduced Motion', 'Media Safe', '実需要', 'starter画面']) {
       expect(instructions).toContain(principle)
     }
     expect(instructions).not.toContain('Codex へ移行した `app-kit`')

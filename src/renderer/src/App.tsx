@@ -238,7 +238,7 @@ export default function App(): JSX.Element {
             <p className={apiKeyStatus === 'undecryptable' || apiKeyStatus === 'error' ? 'warn' : 'muted'} role={apiKeyStatus === 'error' ? 'alert' : 'status'}>
               状態: {SECRET_LABEL[apiKeyStatus] ?? apiKeyStatus}
             </p>
-            <div className="row">
+            <div className="ak-layout-inline">
               <Button onClick={setApiKey} disabled={apiKeyStatus === 'loading'}>
                 {apiKeyStatus === 'unset' || apiKeyStatus === 'error' ? '設定する' : '入れ直す'}
               </Button>
@@ -253,7 +253,7 @@ export default function App(): JSX.Element {
 
           <section>
             <h2>notes（{notes.length}件）</h2>
-            <div className="row notes__entry">
+            <div className="ak-layout-inline notes__entry">
               <TextField
                 className="notes__field"
                 label="メモの内容"
@@ -266,12 +266,12 @@ export default function App(): JSX.Element {
               <Button variant="primary" onClick={addNote}>追加</Button>
             </div>
             {notesLoaded && notes.length === 0 && <EmptyState title="まだメモがありません" description="上の入力欄からメモを追加できます。" />}
-            {notes.length > 0 && <ul>
+            {notes.length > 0 && <ul className="starter-list">
               {notes.map((n) => (
                 <li key={n.id}>
                   <span>{n.body}</span>
-                  <span className="row">
-                    <button onClick={() => renameNote(n)}>編集</button>
+                  <span className="ak-layout-inline">
+                    <button className="starter-native-button" onClick={() => renameNote(n)}>編集</button>
                     <IconButton aria-label={`${n.body}を削除`} onClick={() => removeNote(n)}>×</IconButton>
                   </span>
                 </li>
@@ -281,13 +281,13 @@ export default function App(): JSX.Element {
 
           <section>
             <h2>バックアップ（{backupList.status === 'loaded' ? `${backups.length}世代` : backupList.status === 'loading' ? '読み込み中' : '取得失敗'}）</h2>
-            <div className="row backup-actions">
+            <div className="ak-layout-inline backup-actions">
               <Button variant="primary" onClick={createBackup} disabled={backupList.status === 'loading'}>今すぐバックアップ</Button>
               <Button onClick={() => window.api.backup.openFolder()}>フォルダを開く</Button>
               <Button onClick={() => window.api.log.openFolder()}>ログを開く</Button>
               <Button onClick={createDiagnostics}>診断情報ZIPを作る</Button>
               {window.api.isE2E && (
-                <button onClick={() => setBoom(true)}>描画を壊す（確認用）</button>
+                <button className="starter-native-button" onClick={() => setBoom(true)}>描画を壊す（確認用）</button>
               )}
             </div>
             <p className="muted">
@@ -299,14 +299,14 @@ export default function App(): JSX.Element {
             {backupList.status === 'loading' && <p className="muted" role="status">バックアップを読み込み中…</p>}
             {backupList.status === 'error' && <p className="warn" role="alert">バックアップ一覧を読み込めませんでした。</p>}
             {backupList.status === 'loaded' && backups.length === 0 && <EmptyState title="まだバックアップがありません" description="「今すぐバックアップ」から作成できます。" />}
-            {backupList.status === 'loaded' && backups.length > 0 && <ul>
+            {backupList.status === 'loaded' && backups.length > 0 && <ul className="starter-list">
               {backups.map((b) => (
                 <li key={b.path}>
                   <span>
                     {b.name}
                     <span className="muted"> — {formatSize(b.size)}</span>
                   </span>
-                  <button onClick={() => restoreBackup(b)}>復元</button>
+                  <button className="starter-native-button" onClick={() => restoreBackup(b)}>復元</button>
                 </li>
               ))}
             </ul>}

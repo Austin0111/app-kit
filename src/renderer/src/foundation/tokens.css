@@ -1,4 +1,9 @@
 :root {
+  --bg: #16161a;
+  --fg: #e6e6e6;
+  --muted: #8b8b93;
+  --line: #2a2a30;
+  --accent: #7c3aed;
   --ak-foundation-space-related: 8px;
   --ak-foundation-radius-control: 6px;
   --ak-foundation-radius-surface: 8px;

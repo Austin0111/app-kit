@@ -1,0 +1,206 @@
+.app-shell {
+  width: 100%;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.app {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.app__content {
+  padding: 24px 28px;
+  max-width: 720px;
+}
+
+.app__content > h1 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.app__content > section > h2 {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.app__content > section {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: var(--ak-foundation-type-supporting);
+}
+
+/* 入れ直しが要る等、利用者の対応が必要なことを示す */
+.warn {
+  color: var(--ak-foundation-color-warning);
+  font-size: var(--ak-foundation-type-supporting);
+}
+
+.settings-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+}
+
+.settings-control {
+  display: grid;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.settings-control select {
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--ak-foundation-radius-control);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+
+.settings-control select:focus-visible,
+.settings-control input:focus-visible {
+  outline: var(--ak-foundation-focus-width) solid var(--accent);
+  outline-offset: var(--ak-foundation-focus-offset);
+}
+
+.settings-control select:disabled,
+.settings-control input:disabled { opacity: .55; cursor: default; }
+
+.settings-toggle { min-height: 36px; }
+
+.notes__entry { align-items: end; }
+.notes__field { flex: 1; }
+
+/* 診断など基盤操作が増えても、狭い窓で右端へはみ出させない。 */
+.backup-actions {
+  flex-wrap: wrap;
+}
+
+.starter-native-button {
+  padding: 8px 14px;
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--ak-foundation-radius-control);
+  color: #fff;
+  cursor: pointer;
+}
+
+.starter-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+
+.starter-list > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.starter-list .starter-native-button {
+  background: transparent;
+  color: var(--muted);
+  padding: 2px 8px;
+}
+
+.settings-control input[type='color'] {
+  width: 44px;
+  padding: 2px;
+  height: 36px;
+  box-sizing: border-box;
+  background: #1e1e24;
+  border: 1px solid var(--line);
+  border-radius: var(--ak-foundation-radius-control);
+  color: inherit;
+  cursor: pointer;
+}
+
+.statusbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 28px;
+  background: #101014;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  z-index: 30;
+}
+
+/* ステータスバーは position:fixed なので、その分だけ下に余白を確保する。
+   これが無いと最後の要素がバーの下に潜り込み、スクロールしても読めなくなる
+   （狭い幅のスクリーンショットで実際に見つかった）。 */
+.app-shell:has(.statusbar) .app__content {
+  padding-bottom: 48px;
+}
+
+/* テーマはトークンの差し替えだけで切り替える（Oto棚の色辞書方式と同じ考え方）。
+   個々のスタイル側には手を入れない。 */
+.app-shell[data-theme='light'] {
+  --bg: #f7f7f8;
+  --fg: #1a1a1e;
+  --muted: #6b6b73;
+  --line: #dcdce2;
+  /* 既存の警告色と文字色を半分ずつ混ぜ、明るい面でも警告文を読めるようにする。 */
+  --ak-foundation-color-warning: color-mix(in srgb, #f0a020 50%, var(--fg));
+}
+
+.app-shell[data-theme='light'] {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.app-shell[data-theme='light'] .settings-control input[type='color'] {
+  background: #fff;
+  color: inherit;
+}
+
+/* ライト時はダイアログ／トーストも合わせる。
+   :has() で「ライトのアプリを含むページ」を判定する。<dialog> は
+   トップレイヤーへ出て .app の外側に描画されるため、子孫セレクタでは届かない。 */
+body:has(.app-shell[data-theme='light']) .dialog__panel,
+body:has(.app-shell[data-theme='light']) .toast {
+  background: #fff;
+  color: #1a1a1e;
+  border-color: #dcdce2;
+}
+
+body:has(.app-shell[data-theme='light']) .dialog__button {
+  background: #ebebf0;
+  color: #1a1a1e;
+}
+
+body:has(.app-shell[data-theme='light']) .dialog__button.is-primary,
+body:has(.app-shell[data-theme='light']) .dialog__button.is-danger {
+  color: #fff;
+}
+
+/* タイトルバーはトップレイヤーではないが、.app の外にあるので同じく body から当てる */
+body:has(.app-shell[data-theme='light']) .titlebar {
+  background: #ebebf0;
+  border-bottom-color: #dcdce2;
+}
+
+body:has(.app-shell[data-theme='light']) .titlebar__button:hover {
+  background: #dcdce2;
+  color: #1a1a1e;
+}

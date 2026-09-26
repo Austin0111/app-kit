@@ -41,6 +41,7 @@ const DEVELOPMENT_ONLY = new Set([
   'src/renderer/component-gallery',
   'src/renderer/foundation-gallery.html',
   'src/renderer/foundation-gallery',
+  'src/renderer/src/dev',
   'src/renderer/src/ui/component-registry.ts',
   'scripts/create-app.mjs',
   'tests/component-gallery.spec.ts',
@@ -155,11 +156,11 @@ function removeMarkedSection(relPath, start, end) {
 
 removeMarkedSection('src/renderer/src/App.tsx', 'APP_KIT_DEVELOPMENT_ENTRY_START', 'APP_KIT_DEVELOPMENT_ENTRY_END')
 removeMarkedSection('src/main/index.ts', 'APP_KIT_GALLERY_WINDOW_START', 'APP_KIT_GALLERY_WINDOW_END')
-removeMarkedSection('src/renderer/src/index.css', 'APP_KIT_DEVELOPMENT_STYLE_START', 'APP_KIT_DEVELOPMENT_STYLE_END')
+removeMarkedSection('src/renderer/src/main.tsx', 'APP_KIT_DEVELOPMENT_STYLE_IMPORT_START', 'APP_KIT_DEVELOPMENT_STYLE_IMPORT_END')
 replaceIn('src/renderer/src/App.tsx', [['DISPLAY_NAME, IS_TEMPLATE', 'DISPLAY_NAME']])
 replaceIn('src/main/index.ts', [['INTERNAL_NAME, IS_TEMPLATE', 'INTERNAL_NAME']])
 
-for (const relPath of ['docs/ui-components.md', 'docs/ui-foundations.md', 'docs/ui-motion.md', 'docs/ui-design-review.md']) {
+for (const relPath of ['docs/ui-components.md', 'docs/ui-foundations.md', 'docs/ui-layout.md', 'docs/ui-motion.md', 'docs/ui-design-review.md']) {
   const path = join(targetDir, relPath)
   let source = readFileSync(path, 'utf8')
   while (source.includes('<!-- APP_KIT_ONLY_START -->')) {
@@ -270,6 +271,8 @@ writeFileSync(join(targetDir, 'AGENTS.md'), `# ${displayName} 開発指示
 このアプリの製品仕様を優先する。新規UIでは [docs/ui-components.md](docs/ui-components.md) の既存標準Componentを先に確認し、用途とsemanticsが合う場合に再利用する。無理な置換や、実需要のないComponent追加はしない。OWNER向けUIは日本語を優先する。
 
 - Foundationは [docs/ui-foundations.md](docs/ui-foundations.md) の既存Tokenを直書きより優先し、実需要なしにTokenを増やさない。
+- Base / Foundation / Layout / Componentの境界は [docs/ui-layout.md](docs/ui-layout.md) を参照する。starter画面は製品UIの強制テンプレートではない。既存Layout Primitiveが用途に合えば使い、無ければ製品固有layoutを画面側に作る。実需要なしにPrimitiveを増やさない。
+- 製品固有layoutをglobal CSSへ混ぜず、標準Componentの内部styleを画面側で不用意に上書きしない。
 - Motionは [docs/ui-motion.md](docs/ui-motion.md) を正本とする。不要なら動かさず、必要ならCoreを優先する。内容物でStandard / Media Safe / Opaque Mediaを選び、Reduced Motionでも状態情報を残す。
 - substantial UI work（新規画面、大きなレイアウト変更、新規Reusable Component、大幅なVisual Redesign）は、実装後に [docs/ui-design-review.md](docs/ui-design-review.md) に従ってDesign Reviewを行う。製品固有のFigma Fileが使えない場合は通常のUI Reviewを行い、理由を報告する。
 - TypeScript / TSX編集後は \`npm run typecheck\`、機能・UI変更後は \`npm run verify\`。テスト結果と \`test-results/screenshots/\` の画像を実際に確認し、Console Errorを残さない。

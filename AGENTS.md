@@ -25,6 +25,7 @@
 - 新規の一般的な単一行テキスト入力UIでは、`docs/ui-components.md` の標準TextFieldを優先する。
 - 読み込み済み一覧の空状態には、`docs/ui-components.md` の標準EmptyStateを確認する。
 - 新しいUIで用途の合うFoundation tokenがある場合は `docs/ui-foundations.md` を確認して直書きより優先し、実需要なしにtokenを増やさない。
+- LayoutとCSS責務は `docs/ui-layout.md` を正本とする。starter画面の配置を標準Layoutとして扱わず、用途の合う既存Primitiveを優先する。実需要なしに新Primitiveを増やさず、製品固有layoutをglobal selectorへ混ぜない。
 
 - 依存導入は README の順序どおり `npm install --ignore-scripts`、`node node_modules/electron/install.js`、`npx electron-rebuild -w better-sqlite3` を使う。
 - 雛形からアプリを作る前に `scripts/create-app.mjs` と README 末尾の注意事項を確認する。

@@ -4,11 +4,17 @@ import App from './App'
 import { UiProvider } from './ui'
 import { DISPLAY_NAME } from '../../shared/app-meta'
 import { installRendererErrorLogging } from './log'
+import './base.css'
 import './foundation/tokens.css'
-import './index.css'
 import './motion/tokens.css'
 import './motion/presets.css'
+import './layout/inline.css'
 import './ui/components.css'
+import './ui/chrome.css'
+import './starter.css'
+// APP_KIT_DEVELOPMENT_STYLE_IMPORT_START
+import './dev/design-system.css'
+// APP_KIT_DEVELOPMENT_STYLE_IMPORT_END
 
 // 画面側の例外を記録に残す（DevTools を開かないと分からない状態にしない）
 installRendererErrorLogging()

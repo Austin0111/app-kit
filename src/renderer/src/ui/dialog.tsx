@@ -187,7 +187,7 @@ export function DialogProvider({ children }: { children: ReactNode }): JSX.Eleme
                 autoFocus
               />
             )}
-            <div className="dialog__buttons">
+            <div className="ak-layout-inline dialog__buttons">
               {req.buttons.map((b) => (
                 <button
                   key={b.value}

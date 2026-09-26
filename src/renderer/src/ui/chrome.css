@@ -1,0 +1,274 @@
+/* ── カスタムタイトルバー ── */
+.titlebar {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  background: #101014;
+  border-bottom: 1px solid var(--line);
+  z-index: 40;
+  /* ここがドラッグ領域。Windows ではキャプション扱いになり、
+     ダブルクリック最大化と画面端スナップが自前実装なしで効く */
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.titlebar__title {
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/**
+ * バーの中央に置く追加要素（版表記など）。
+ *
+ * **`flex: 1` にしてはいけない。** 伸ばすと中身が中央一帯を占め、
+ * 下の `no-drag` と合わさって**バーの中央がまるごとドラッグできなくなる**。
+ * ダブルクリックでの最大化も効かなくなる（実測で 20〜80% が死んでいた）。
+ * 中身の幅だけに留め、残りはドラッグ領域として空けておく。
+ */
+.titlebar__slot {
+  flex: 0 0 auto;
+  min-width: 0;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar__buttons {
+  margin-left: auto;
+  display: flex;
+  height: 100%;
+}
+
+/* ドラッグ領域の中の操作要素には no-drag が必須。
+   スロットは中身の幅にしか広がらないので、箱ごと no-drag にして
+   button 以外のリンク・入力欄・独自操作要素もクリック可能にする。 */
+.titlebar__button {
+  -webkit-app-region: no-drag;
+}
+
+.titlebar__button {
+  width: 46px;
+  height: 100%;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--muted);
+  cursor: default;
+}
+
+.titlebar__button:hover {
+  background: #26262e;
+  color: var(--fg);
+}
+
+.titlebar__button.is-close:hover {
+  background: #c42b1c;
+  color: #fff;
+}
+
+/* ── 描画に失敗したときの画面 ── */
+.crash {
+  padding: 72px 28px 28px;
+  max-width: 640px;
+}
+
+.crash__title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: var(--ak-foundation-color-warning);
+}
+
+.crash__lead {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 0 0 16px;
+}
+
+.crash__detail {
+  margin: 0 0 20px;
+  padding: 12px;
+  background: #1e1e24;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 30vh;
+  overflow: auto;
+}
+
+.crash button {
+  padding: 8px 14px;
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--ak-foundation-radius-control);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* ── 版表記（タイトルバー内） ── */
+.version {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.version__label {
+  padding: 2px 6px;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.version__label:hover {
+  background: #26262e;
+  color: var(--fg);
+}
+
+/* 更新があるときだけ出る。押すとブラウザでリリースページを開く */
+.version__update {
+  padding: 1px 7px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* 更新履歴。長いので枠内でスクロールさせる */
+.changelog {
+  max-height: 50vh;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  background: #16161a;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── トースト ── */
+.toast-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 50;
+}
+
+.toast {
+  padding: 10px 14px;
+  border-radius: var(--ak-foundation-radius-surface);
+  border: 1px solid var(--line);
+  background: #22222a;
+  color: var(--fg);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 35%);
+  animation: toast-in 0.14s ease-out;
+}
+
+.toast--success {
+  border-left: 3px solid #3fb950;
+}
+.toast--error {
+  border-left: 3px solid #f85149;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
+}
+
+/* ── ダイアログ ── */
+.dialog {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+
+.dialog__panel {
+  box-sizing: border-box;
+  min-width: min(382px, calc(100vw - 32px));
+  max-width: 460px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #1e1e24;
+  color: var(--fg);
+}
+
+.dialog__title {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.dialog__message {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.dialog__input {
+  width: 100%;
+  margin-top: 12px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  background: #1e1e24;
+  border: 1px solid var(--line);
+  border-radius: var(--ak-foundation-radius-control);
+  color: inherit;
+}
+
+.dialog__buttons {
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.dialog__button {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--ak-foundation-radius-control);
+  cursor: pointer;
+  background: #2c2c34;
+  color: var(--fg);
+}
+
+.dialog__button.is-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.dialog__button.is-danger {
+  background: #b62324;
+  color: #fff;
+}

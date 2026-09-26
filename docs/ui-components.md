@@ -30,7 +30,7 @@ labelは`htmlFor`でinputへ結び、description、error、呼び出し側の`ar
 短い設定名や自由入力に推奨する。検索・数値・パスワード・複数行・選択肢は、それぞれSearchField / NumberField / PasswordField / TextArea / Selectの別候補とし、`TextField`の`type`を変えて流用しない。prefix / suffix / iconやvalidation frameworkもv1には含めない。
 
 <!-- APP_KIT_ONLY_START -->
-棚卸しでは、製品UIのテキスト入力は`App.tsx`のnotes入力と`dialog.tsx`のprompt入力の2箇所。色選択inputは別用途。search / number / password / selectの実画面利用はなく、Motion Galleryのtextareaはコピー用の一時DOMだけである。入力の見た目は`index.css`のglobal `input`とDialog局所CSSに分散していた。notes入力は標準TextFieldを適用し、label・説明文・focus-visibleとEnterでの追加を実画面で確認した。Dialog promptはfocusと送信lifecycleを保つ必要があるため、専用UIとして別途評価する。既存画面は一括置換しない。
+棚卸しでは、製品UIのテキスト入力は`App.tsx`のnotes入力と`dialog.tsx`のprompt入力の2箇所。色選択inputは別用途。search / number / password / selectの実画面利用はなく、Motion Galleryのtextareaはコピー用の一時DOMだけである。入力の見た目は当初`index.css`のglobal `input`とDialog局所CSSに分散していたが、現在はComponentとDialog固有CSSへ分離済み。notes入力は標準TextFieldを適用し、label・説明文・focus-visibleとEnterでの追加を実画面で確認した。Dialog promptはfocusと送信lifecycleを保つ必要があるため、専用UIとして別途評価する。既存画面は一括置換しない。
 
 <!-- APP_KIT_ONLY_END -->
 
@@ -94,7 +94,7 @@ import { Button, IconButton } from './ui'
 - **標準Buttonへ寄せられる**: `App.tsx` の追加・バックアップ・診断等の汎用操作、Galleryの再生・補足操作、ErrorBoundaryの復旧操作。v1ではGalleryの2箇所だけ適用した。Galleryの選択ナビゲーションは選択状態と配置があるため別途判断する。
 - **特殊用途**: テーマ・ステータスバーの即時設定ボタンは `aria-pressed` や `Toggle` への移行を含めて検討する。Dialog・VersionBadge・TitleBarは専用スタイルを保持し、一括置換しない。`App.tsx` の「×」は accessible name の追加が先決。画面遷移は既存のリンクを維持する。
 
-既存の `<button>` はほぼ native 要素で、`div role="button"` 等の代用は見つからなかった。汎用ボタンの背景色・余白は `index.css` の全体指定と `li button`、Dialog、Galleryの局所CSSに分散している。focus-visible は一部専用ComponentとGalleryにはあるが、通常の `App.tsx` ボタンには共通指定がない。hover / active feedbackも用途ごとにばらつく。新規の汎用操作から標準Buttonを使い、既存画面は振る舞いと見た目を比較して段階的に移行する。
+既存の `<button>` はほぼ native 要素で、`div role="button"` 等の代用は見つからなかった。当初、汎用ボタンの背景色・余白は `index.css` の全体指定と `li button`、Dialog、Galleryの局所CSSに分散していたが、現在は標準Component、starter、Dialog、Galleryに分離済み。focus-visible は標準ComponentとGalleryが持つ。新規の汎用操作から標準Buttonを使い、既存画面は振る舞いと見た目を比較して段階的に移行する。
 
 <!-- APP_KIT_ONLY_END -->
 

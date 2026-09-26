@@ -1,12 +1,12 @@
 # Proofline UI Foundations v1
 
-Foundationは、既存画面で繰り返し使われる基礎値の名前を定める。正本は `src/renderer/src/foundation/tokens.css`。**Foundation → Component → Motion / Interaction → Product UI** の順で選ぶ。Componentの用途は [ui-components.md](ui-components.md)、動きとSurface Safetyは [ui-motion.md](ui-motion.md)、Review方法は [ui-design-review.md](ui-design-review.md) を参照する。
+Foundationは、既存画面で繰り返し使われる基礎値の名前を定める。正本は `src/renderer/src/foundation/tokens.css`。**Base → Foundation → Layout + Components → Motion / Interaction → Product UI** の責務は [ui-layout.md](ui-layout.md) にまとめる。Componentの用途は [ui-components.md](ui-components.md)、動きとSurface Safetyは [ui-motion.md](ui-motion.md)、Review方法は [ui-design-review.md](ui-design-review.md) を参照する。
 
 ## 今回標準化した値
 
 | 日本語名 | 正式Token名 | 実値 | 用途・既存の根拠 |
 |---|---|---|---|
-| 関連操作の間隔 | `--ak-foundation-space-related` | `8px` | 製品画面の`.row`、Dialog操作列、Galleryの操作列で使われる短い間隔 |
+| 関連操作の間隔 | `--ak-foundation-space-related` | `8px` | 製品画面とDialogの`.ak-layout-inline`、Galleryの操作列で使われる短い間隔 |
 | 操作部品の角丸 | `--ak-foundation-radius-control` | `6px` | native button/input、標準Button/TextFieldに繰り返される角丸 |
 | 情報面の角丸 | `--ak-foundation-radius-surface` | `8px` | Accordion/Panel/Card/EmptyState、Toast、Galleryの比較面 |
 | フォーカス輪郭の太さ | `--ak-foundation-focus-width` | `2px` | 標準Componentと両Galleryの`:focus-visible` |

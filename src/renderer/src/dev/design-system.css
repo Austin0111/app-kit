@@ -1,0 +1,14 @@
+.design-system__link {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: var(--ak-foundation-radius-control);
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+}
+.design-system__link + .design-system__link { margin: 8px 0 0 8px; }
+
+.design-system__link:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}

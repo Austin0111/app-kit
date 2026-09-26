@@ -31,7 +31,7 @@ test('Galleryは通常/Reduced比較、Replay、初回画像契約を確認で�
     await page.screenshot({ path: join('test-results', 'screenshots', 'motion-gallery-narrow.png') })
     await page.setViewportSize({ width: 1100, height: 850 })
     await page.getByRole('button', { name: '控えめな通知・登場 ToastEnterCompact' }).click()
-    await expect(page.getByText('template src/renderer/src/index.css toast-in')).toBeVisible()
+    await expect(page.getByText('template src/renderer/src/ui/chrome.css toast-in')).toBeVisible()
     await page.getByRole('button', { name: '通知の強調・登場 ToastRiseIn' }).click()
     await expect(page.getByText('VideoDeck renderer/styles/main.css toastIn')).toBeVisible()
     await expect(page.getByLabel('Toast比較').locator('.mg-toast-variant-grid > div')).toHaveCount(3)
