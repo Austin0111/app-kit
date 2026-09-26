@@ -12,6 +12,42 @@ test.describe('UI 部品', () => {
     await ctx?.close()
   })
 
+  test('設定の選択・色入力・即時Toggleは名前、状態、キーボード操作を保つ', async () => {
+    const { page } = ctx
+    const theme = page.getByRole('combobox', { name: 'テーマ' })
+    const color = page.getByLabel('アクセント色')
+    const status = page.getByRole('switch', { name: 'ステータスバーを表示' })
+
+    await expect(theme).toBeEnabled()
+    await expect(color).toHaveAttribute('type', 'color')
+    await expect(status).toHaveAttribute('aria-checked', 'true')
+    const descriptionId = await status.getAttribute('aria-describedby')
+    expect(descriptionId).toBeTruthy()
+    await expect(page.locator(`[id="${descriptionId}"]`)).toContainText('すぐに反映・保存')
+
+    await theme.focus()
+    await page.keyboard.press('Shift+Tab')
+    await page.keyboard.press('Tab')
+    await expect(theme).toBeFocused()
+    expect(await theme.evaluate((element) => getComputedStyle(element).outlineStyle)).toBe('solid')
+
+    await status.focus()
+    await page.keyboard.press('Shift+Tab')
+    await page.keyboard.press('Tab')
+    await expect(status).toBeFocused()
+    expect(await status.evaluate((element) => getComputedStyle(element).outlineStyle)).toBe('solid')
+    await page.keyboard.press('Space')
+    await expect(status).toHaveAttribute('aria-checked', 'false')
+    await expect(page.locator('.statusbar')).toHaveCount(0)
+    await page.keyboard.press('Space')
+    await expect(status).toHaveAttribute('aria-checked', 'true')
+    await expect(page.locator('.statusbar')).toBeVisible()
+
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await expect(status).toHaveAttribute('aria-checked', 'true')
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+  })
+
   test('タイトルバーの最大化ボタンで表示が入れ替わる', async () => {
     const button = ctx.page.locator('.titlebar__button').nth(1)
     await expect(button).toHaveAttribute('aria-label', '最大化')

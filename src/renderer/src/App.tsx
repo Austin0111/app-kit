@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Api } from '../../preload'
 import { useSettings } from './useSettings'
-import { Button, EmptyState, IconButton, useDialog, useToast, TextField, TitleBar, VersionBadge } from './ui'
+import { Button, EmptyState, IconButton, TextField, Toggle, TitleBar, VersionBadge, useDialog, useToast } from './ui'
 import { DISPLAY_NAME, IS_TEMPLATE } from '../../shared/app-meta'
 
 declare global {
@@ -19,10 +19,12 @@ type BackupListState =
 
 /** 秘密情報の状態を、素人にも分かる言葉にする。 */
 const SECRET_LABEL: Record<string, string> = {
+  loading: '確認中…',
   unset: '未設定',
   ok: '設定済み',
   plaintext: '設定済み（この環境では暗号化できず平文で保存）',
-  undecryptable: '復号できない。入れ直しが要る（別PCへ復元した等）'
+  undecryptable: '復号できない。入れ直しが要る（別PCへ復元した等）',
+  error: '状態を確認できませんでした'
 }
 
 function formatSize(bytes: number): string {
@@ -32,7 +34,7 @@ function formatSize(bytes: number): string {
 }
 
 export default function App(): JSX.Element {
-  const { settings, update, loaded } = useSettings()
+  const { settings, update, loaded, error: settingsError, reload: reloadSettings } = useSettings()
   const toast = useToast()
   const dialog = useDialog()
   const [notes, setNotes] = useState<Note[]>([])
@@ -40,7 +42,7 @@ export default function App(): JSX.Element {
   const [draft, setDraft] = useState('')
   const [backupList, setBackupList] = useState<BackupListState>({ status: 'loading' })
   const backups = backupList.status === 'loaded' ? backupList.items : []
-  const [apiKeyStatus, setApiKeyStatus] = useState<string>('unset')
+  const [apiKeyStatus, setApiKeyStatus] = useState<string>('loading')
   // エラー境界が働くかを確かめるための仕掛け。真になると描画が失敗する。
   // 検証用なので配布版では触れない（下のボタンを出さない）
   const [boom, setBoom] = useState(false)
@@ -52,7 +54,9 @@ export default function App(): JSX.Element {
     window.api.backup.list()
       .then((items) => { if (active) setBackupList({ status: 'loaded', items }) })
       .catch(() => { if (active) setBackupList({ status: 'error' }) })
-    window.api.secrets.status('demoApiKey').then(setApiKeyStatus)
+    window.api.secrets.status('demoApiKey')
+      .then((status) => { if (active) setApiKeyStatus(status) })
+      .catch(() => { if (active) setApiKeyStatus('error') })
     return () => { active = false }
   }, [])
 
@@ -81,15 +85,23 @@ export default function App(): JSX.Element {
       toast.error('空では保存できぬ')
       return
     }
-    await window.api.secrets.set('demoApiKey', key.trim())
-    setApiKeyStatus(await window.api.secrets.status('demoApiKey'))
-    toast.success('APIキーを保存した')
+    try {
+      await window.api.secrets.set('demoApiKey', key.trim())
+      setApiKeyStatus(await window.api.secrets.status('demoApiKey'))
+      toast.success('APIキーを保存した')
+    } catch {
+      toast.error('APIキーを保存できませんでした')
+    }
   }
 
   async function clearApiKey(): Promise<void> {
-    await window.api.secrets.clear('demoApiKey')
-    setApiKeyStatus(await window.api.secrets.status('demoApiKey'))
-    toast.success('APIキーを消した')
+    try {
+      await window.api.secrets.clear('demoApiKey')
+      setApiKeyStatus(await window.api.secrets.status('demoApiKey'))
+      toast.success('APIキーを消した')
+    } catch {
+      toast.error('APIキーを消せませんでした')
+    }
   }
 
   async function createBackup(): Promise<void> {
@@ -184,22 +196,26 @@ export default function App(): JSX.Element {
 
           <section>
             <h2>設定KV</h2>
-            <div className="row">
-              <button
-                onClick={() => update({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}
-              >
-                テーマ: {settings.theme}
-              </button>
-              <input
-                type="color"
-                value={settings.accentColor}
-                onChange={(e) => update({ accentColor: e.target.value })}
-                title="アクセント色"
-              />
-              <button onClick={() => update({ showStatusBar: !settings.showStatusBar })}>
-                ステータスバー: {settings.showStatusBar ? 'ON' : 'OFF'}
-              </button>
+            <div className="settings-controls">
+              <div className="settings-control">
+                <label htmlFor="setting-theme">テーマ</label>
+                <select id="setting-theme" value={settings.theme} disabled={!loaded}
+                  onChange={(e) => update({ theme: e.target.value as typeof settings.theme })}>
+                  <option value="dark">ダーク</option>
+                  <option value="light">ライト</option>
+                </select>
+              </div>
+              <div className="settings-control">
+                <label htmlFor="setting-accent">アクセント色</label>
+                <input id="setting-accent" type="color" value={settings.accentColor}
+                  disabled={!loaded} onChange={(e) => update({ accentColor: e.target.value })} />
+              </div>
+              <Toggle className="settings-toggle" label="ステータスバーを表示"
+                description="切り替えるとすぐに反映・保存されます"
+                checked={settings.showStatusBar} disabled={!loaded}
+                onCheckedChange={(checked) => update({ showStatusBar: checked })} />
             </div>
+            {settingsError && <p className="warn" role="alert">{settingsError} <Button size="compact" onClick={reloadSettings}>再読込</Button></p>}
             <p className="muted">
               いずれも即座に保存される。<strong>ウィンドウの位置・サイズも記憶する</strong>
               ので、 動かして閉じて開き直すと同じ場所に出る。
@@ -208,14 +224,14 @@ export default function App(): JSX.Element {
 
           <section>
             <h2>秘密情報（APIキー等）</h2>
-            <p className={apiKeyStatus === 'undecryptable' ? 'warn' : 'muted'}>
+            <p className={apiKeyStatus === 'undecryptable' || apiKeyStatus === 'error' ? 'warn' : 'muted'} role="status">
               状態: {SECRET_LABEL[apiKeyStatus] ?? apiKeyStatus}
             </p>
             <div className="row">
-              <button onClick={setApiKey}>
-                {apiKeyStatus === 'unset' ? '設定する' : '入れ直す'}
-              </button>
-              {apiKeyStatus !== 'unset' && <button onClick={clearApiKey}>消す</button>}
+              <Button onClick={setApiKey} disabled={apiKeyStatus === 'loading'}>
+                {apiKeyStatus === 'unset' || apiKeyStatus === 'error' ? '設定する' : '入れ直す'}
+              </Button>
+              {!['loading', 'unset', 'error'].includes(apiKeyStatus) && <Button variant="danger" onClick={clearApiKey}>消す</Button>}
             </div>
             <p className="muted">
               OSの仕組み（Windows は DPAPI）で暗号化して保存する。
@@ -255,9 +271,9 @@ export default function App(): JSX.Element {
             <h2>バックアップ（{backupList.status === 'loaded' ? `${backups.length}世代` : backupList.status === 'loading' ? '読み込み中' : '取得失敗'}）</h2>
             <div className="row backup-actions">
               <Button variant="primary" onClick={createBackup} disabled={backupList.status === 'loading'}>今すぐバックアップ</Button>
-              <button onClick={() => window.api.backup.openFolder()}>フォルダを開く</button>
-              <button onClick={() => window.api.log.openFolder()}>ログを開く</button>
-              <button onClick={createDiagnostics}>診断情報ZIPを作る</button>
+              <Button onClick={() => window.api.backup.openFolder()}>フォルダを開く</Button>
+              <Button onClick={() => window.api.log.openFolder()}>ログを開く</Button>
+              <Button onClick={createDiagnostics}>診断情報ZIPを作る</Button>
               {window.api.isE2E && (
                 <button onClick={() => setBoom(true)}>描画を壊す（確認用）</button>
               )}

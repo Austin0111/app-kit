@@ -8,7 +8,7 @@
 - 名前: **Proofline App Kit - Design Review**
 - URL: https://www.figma.com/design/AAJ0mwevHzAmjBHv9W20ok/Proofline-App-Kit---Design-Review
 - fileKey: `AAJ0mwevHzAmjBHv9W20ok`
-- 実地Capture: [Component Gallery（2026-09-27）](https://www.figma.com/design/AAJ0mwevHzAmjBHv9W20ok/Proofline-App-Kit---Design-Review?node-id=8-2)、[Foundation Gallery（2026-09-27）](https://www.figma.com/design/AAJ0mwevHzAmjBHv9W20ok/Proofline-App-Kit---Design-Review?node-id=10-2)
+- 実地Capture: [Component Gallery（2026-09-27）](https://www.figma.com/design/AAJ0mwevHzAmjBHv9W20ok/Proofline-App-Kit---Design-Review?node-id=8-2)、[Foundation Gallery（2026-09-27）](https://www.figma.com/design/AAJ0mwevHzAmjBHv9W20ok/Proofline-App-Kit---Design-Review?node-id=10-2)、[設定UIのElectron実画面画像（2026-09-27）](https://www.figma.com/design/AAJ0mwevHzAmjBHv9W20ok/Proofline-App-Kit---Design-Review?node-id=12-2)
 
 新しいUI変更ごとにFileを作り直さず、このFileへCaptureを追加する。URLとfileKeyは通常の参照情報であり、認証情報は保存しない。派生アプリは製品固有のReview Fileを使う。
 <!-- APP_KIT_REVIEW_FILE_END -->

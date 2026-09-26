@@ -15,14 +15,21 @@ test('設定は再起動しても残る', async () => {
   const userDataDir = mkdtempSync(join(tmpdir(), 'e2e-persist-'))
   const env = { ...process.env, APP_USER_DATA_DIR: userDataDir }
 
-  // ── 1 回目: テーマを切り替える ──
+  // ── 1 回目: 単一選択と即時反映の二値設定を切り替える ──
   const first = await electron.launch({ args: ['out/main/index.js'], env })
   const page1 = await first.firstWindow()
   await page1.waitForSelector('.titlebar')
 
-  await expect(page1.getByRole('button', { name: /テーマ: dark/ })).toBeVisible()
-  await page1.getByRole('button', { name: /テーマ:/ }).click()
-  await expect(page1.getByRole('button', { name: /テーマ: light/ })).toBeVisible()
+  const theme1 = page1.getByRole('combobox', { name: 'テーマ' })
+  const status1 = page1.getByRole('switch', { name: 'ステータスバーを表示' })
+  await expect(theme1).toHaveValue('dark')
+  await theme1.selectOption('light')
+  await expect(page1.locator('.app-shell')).toHaveAttribute('data-theme', 'light')
+  await expect(status1).toHaveAttribute('aria-checked', 'true')
+  await status1.click()
+  await expect(status1).toHaveAttribute('aria-checked', 'false')
+  await expect(page1.locator('.statusbar')).toHaveCount(0)
+  await expect.poll(() => page1.evaluate(() => window.api.settings.getAll())).toMatchObject({ theme: 'light', showStatusBar: false })
 
   await first.close()
 
@@ -31,7 +38,9 @@ test('設定は再起動しても残る', async () => {
   const page2 = await second.firstWindow()
   await page2.waitForSelector('.titlebar')
 
-  await expect(page2.getByRole('button', { name: /テーマ: light/ })).toBeVisible()
+  await expect(page2.getByRole('combobox', { name: 'テーマ' })).toHaveValue('light')
+  await expect(page2.getByRole('switch', { name: 'ステータスバーを表示' })).toHaveAttribute('aria-checked', 'false')
+  await expect(page2.locator('.statusbar')).toHaveCount(0)
 
   await second.close()
   try {

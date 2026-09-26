@@ -91,6 +91,40 @@ section {
   gap: var(--ak-foundation-space-related);
 }
 
+.settings-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+}
+
+.settings-control {
+  display: grid;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.settings-control select {
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--ak-foundation-radius-control);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+
+.settings-control select:focus-visible,
+.settings-control input:focus-visible {
+  outline: var(--ak-foundation-focus-width) solid var(--accent);
+  outline-offset: var(--ak-foundation-focus-offset);
+}
+
+.settings-control select:disabled,
+.settings-control input:disabled { opacity: .55; cursor: default; }
+
+.settings-toggle { min-height: 36px; }
+
 .notes__entry { align-items: end; }
 .notes__field { flex: 1; }
 
@@ -166,6 +200,8 @@ input[type='color'] {
   height: 36px;
   cursor: pointer;
 }
+
+.settings-control input[type='color'] { flex: none; }
 
 .statusbar {
   position: fixed;
