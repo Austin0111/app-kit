@@ -4,6 +4,12 @@
 機能追加・修正のまとまりごとに 1 エントリ足し、同時に patch（または minor）を上げる。
 （映棚で回している運用をそのまま持ってきたもの）
 
+## [0.4.10] - 2026-09-27
+
+- VideoDeckのタブhoverと画像入りプレビューを棚卸しし、プレビュー面全体のfadeを既存Core PanelFadeInMediaSafeの用途へ追加した
+- Motion Galleryでタブプレビューの推奨用途・避ける場面・参照元を確認できるようにし、WebContentsView固有の表示制御と将来のTabs指針を記録した
+- 新Motion Preset・Tabs Componentは追加せず、既存Coreの意味と値を維持した
+
 ## [0.4.9] - 2026-09-27
 
 - Production Baselineのコマンド入口、変更影響別の検証表、失敗時の確認先を保守Runbookへ整理した

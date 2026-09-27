@@ -56,4 +56,16 @@ rendererの`main.tsx`がtokensとpresetsを読み込む。必要な箇所に`ak-
 
 Toastの既存表示とDialogの即時closeはv1で変更しない。ToastのVideoDeck版は比較用。Dialog Exitはclosing stateからanimation終了後にnative closeするBehaviorとしてLabに置く。
 
+## VideoDeckタブMotionのHarvest（v0.16.156）
+
+現行のタブ実装では、hover時の色・境界・影と背景疑似要素のopacityを変え、画像入りツールチップは**面全体**をopacityだけで登場させる。画像要素自身にはanimationを掛けない。ツールチップの登場は200ms / ease-out、タブ背景は220ms / easeであり、app-kitのCore token値へ無理に統一しない。active面は即時切替で、タブ列に移動する選択インジケータや方向付きコンテンツ遷移はない。
+
+画像入りプレビュー面の登場には、既存Core **PanelFadeInMediaSafe**を第一候補にできる。GalleryでこのIDを選ぶと、通常/Reducedのopacityのみの比較と、タブプレビュー用途・避ける場面を確認できる。再描画のたびに再生したり、遅れて届く画像だけをfadeしたりしない。tab本体のhover色変化はVideoDeck側の視覚フィードバックとして保持し、新Coreは増やさない。**SegmentIndicatorGlide**は実際に移動する同幅の選択面がある場合だけ使い、このタブバーへ適用済みとは扱わない。
+
+**PanelEnterSubtle**はテキスト中心の面向けで画像入りプレビューには使わない。**AccordionReveal**は内容の展開、**MenuPopIn / MenuPopOut**は小型文字メニューの入退場であり、このタブの置換候補ではない。**TreeBranchReveal**は現行app-kitのregistryに無く、VideoDeckの階層展開を今回のタブMotionとしてHarvestしない。
+
+WebContentsView上のツールチップは、native面が前面化するまでanimationをpauseしてから再開する。これは合成面の表示順とlifecycleに依存するVideoDeck固有のRecipe条件であり、Core Presetに含めない。`prefers-reduced-motion`ではhover transitionとtooltip animationを停止し、選択状態・focus-visible・ツールチップ内容を残す。
+
+標準Tabs Componentは未整備。必要な製品では個別実装し、Motionは内容物と実際の選択面に応じて既存Coreを選ぶ。複数製品で同じ操作要件が確認された時にComponent化を再評価する。その際は矢印キー、focus-visible、`aria-selected`・`aria-controls`・`tabpanel`の関係を先に定め、画像入り内容はMedia Safe、動画・WebContentsView面はOpaque Media Surfaceを検討する。
+
 v1未収録: SidebarWidthToggle、ConfirmBounceはLab候補。MediaFullscreenCurtain、ToastSlideOpaque、MediaContentVeilReveal、OverflowMarquee、PlayerControlsAutoHideはRecipe。StatusPulse/Breatheは見送り。ScrollToSectionはBehavior Policy。List StaggerはVideoDeckでHarvest済みではなく、新規Lab候補。
